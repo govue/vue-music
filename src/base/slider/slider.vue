@@ -8,7 +8,9 @@
 </template>
 
 <script type="text/ecmascript-6">
-    // import BScroll from 'better-scroll'
+    import BScroll from 'better-scroll'
+    import {addClass} from '../../common/js/dom'
+
     export default {
       name: 'slider',
       props: {
@@ -28,9 +30,30 @@
       methods: {
         _setSliderWidth() {
           this.childrens = this.$refs.sliderGroup.children
+          let width = 0
+          let sliderWidth = this.$refs.slider.clientWidth
+          for (let i = 0; i < this.childrens.length; i++) {
+            let child = this.childrens[i]
+            addClass(child, 'slider-item')
+            child.style.width = sliderWidth + 'px'
+            width += sliderWidth
+          }
+          if (this.loop) {
+            width += 2 * sliderWidth
+          }
+          this.$refs.sliderGroup.style.width = width + 'px'
         },
         _initSlider() {
-
+          this.slider = new BScroll(this.$refs.slider, {
+            scrollX: true,
+            scrollY: false,
+            momentum: false,
+            snap: true,
+            snapLoop: this.loop,
+            snapThreshold: 0.3,
+            snapSpeed: 400,
+            click: true
+          })
         }
       },
       mounted() {
@@ -61,5 +84,6 @@
           overflow: hidden
           text-decoration: none
         img
-          color: red
+          display: block
+          width: 100%
 </style>
