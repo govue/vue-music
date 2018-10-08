@@ -11,7 +11,7 @@ import {commonParams, options} from './config'
 
 /**
  * @method getSliders
- * @returns {json} jsonp返回数据
+ * @returns {json} jsonp轮播图列表
  * @desc 获取轮播图数据
  */
 export function getSliders() {
@@ -27,7 +27,7 @@ export function getSliders() {
 
 /**
  * @method getDiscList
- * @returns {json} jsonp返回数据
+ * @returns {json} json歌单列表
  * @desc 获取歌单数据
  */
 export function getDissList() {

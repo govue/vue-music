@@ -1,3 +1,11 @@
+<!--
+* @file recommend.vue
+* @author qubo
+* @copyright govue.cn
+* @createDate 2018-10-10 17:07:00
+* @desc 推荐页组件
+-->
+
 <template>
     <div class="recommend">
       <div class="recommend-content">
