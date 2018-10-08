@@ -3,7 +3,7 @@
       <div class="recommend-content">
         <div class="slider-wrapper" v-if="sliders.length">
           <slider>
-            <div v-for="slider in sliders" :key="slider.id">
+            <div v-for="(slider,index) in sliders" :key="index">
               <a :href="slider.linkUrl">
                 <img :src="slider.picUrl" alt="">
               </a>
@@ -19,7 +19,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import {getRecommend} from 'api/recommend'
+  import {getSliders, getDissList} from 'api/recommend'
   import {ERR_OK} from 'api/config'
   import Slider from '../../base/slider/slider'
 
@@ -27,17 +27,29 @@
       name: 'recommend',
       data() {
         return {
-          sliders: []
+          sliders: [],
+          dissList: []
         }
       },
       created () {
-        this._getRecommend()
+        this._getSliders()
+        this._getDissList()
       },
       methods: {
-        _getRecommend() {
-          getRecommend().then((res) => {
+        // 获取轮播图数据
+        _getSliders() {
+          getSliders().then((res) => {
             if (res.code === ERR_OK) {
               this.sliders = res.data.slider
+            }
+          })
+        },
+        // 获取歌单数据
+        _getDissList() {
+          getDissList().then((res) => {
+            if (res.code === ERR_OK) {
+              this.dissList = res.data.list
+              console.log(this.dissList)
             }
           })
         }
