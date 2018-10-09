@@ -3,6 +3,7 @@
  * @author qubo
  * @copyright govue.cn
  * @createDate 2018-10-10 15:10:11
+ * @desc 推荐页相关数据接口api
  */
 
 import jsonp from 'common/js/jsonp'
@@ -28,7 +29,7 @@ export function getSliders() {
 /**
  * @method getDiscList
  * @returns {json} json歌单列表
- * @desc 获取歌单数据
+ * @desc 获取歌单数据，通过webpack.conf.js中的devServer里面before(app) {...}来代理后端数据
  */
 export function getDissList() {
   const url = '/getDissList'

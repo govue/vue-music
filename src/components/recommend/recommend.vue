@@ -8,35 +8,49 @@
 
 <template>
     <div class="recommend">
-      <div class="recommend-content">
-        <div class="slider-wrapper" v-if="sliders.length">
-          <slider>
-            <div v-for="(slider,index) in sliders" :key="index">
-              <a :href="slider.linkUrl">
-                <img :src="slider.picUrl" alt="">
-              </a>
-            </div>
-          </slider>
+      <scroll class="recommend-content" :data="dissList" ref="scroll">
+        <div>
+          <div class="slider-wrapper" v-if="sliders.length">
+            <slider>
+              <div v-for="(slider,index) in sliders" :key="index">
+                <a :href="slider.linkUrl">
+                  <img class="needsclick" :src="slider.picUrl" @load="loadImage" alt="">
+                </a>
+              </div>
+            </slider>
+          </div>
+          <div class="recommend-list">
+            <h1 class="list-title">热门歌单推荐</h1>
+            <ul>
+              <li class="item" v-for="(item,index) in dissList" :key="index">
+                <div class="icon">
+                  <img width="60" height="60" v-lazy="item.imgurl" alt="">
+                </div>
+                <div class="text">
+                  <h2 class="name" v-html="item.creator.name"></h2>
+                  <p class="desc" v-html="item.dissname"></p>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
-        <div class="recommend-list">
-          <h1 class="list-title">热门歌单推荐</h1>
-          <ul></ul>
-        </div>
-      </div>
+      </scroll>
     </div>
 </template>
 
 <script type="text/ecmascript-6">
   import {getSliders, getDissList} from 'api/recommend'
   import {ERR_OK} from 'api/config'
-  import Slider from '../../base/slider/slider'
+  import Slider from 'base/slider/slider'
+  import Scroll from 'base/scroll/scroll'
 
   export default {
       name: 'recommend',
       data() {
         return {
-          sliders: [],
-          dissList: []
+          sliders: [], // 幻灯片组
+          dissList: [], // 歌单列表
+          checkLoadedImage: false // 图片没有加载过时为false，加载后置为true
         }
       },
       created () {
@@ -57,18 +71,29 @@
           getDissList().then((res) => {
             if (res.code === ERR_OK) {
               this.dissList = res.data.list
-              console.log(this.dissList)
             }
           })
+        },
+        /**
+         * @method loadImage
+         * @returns {}
+         * @desc 有图片加载时,这里解决slide数据加载慢时，Bscroll计算高度错误的bug
+         */
+        loadImage() {
+          if (!this.checkLoadedImage) {
+            this.$refs.scroll.refresh() // 如果样式中不指定高度，这里refresh()时会计算出错
+            this.checkLoadedImage = true
+          }
         }
       },
       components: {
-        Slider
+        Slider,
+        Scroll
       }
   }
 </script>
 
-<style lang="stylus" rel="stylesheet/stylus">
+<style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
   .recommend
     position: fixed
@@ -99,10 +124,10 @@
             width: 60px
             padding-right: 20px
           .text
+            flex: 1
             display: flex
             flex-direction: column
             justify-content: center
-            flex: 1
             line-height: 20px
             overflow: hidden
             font-size: $font-size-medium

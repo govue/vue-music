@@ -4,11 +4,15 @@ import 'babel-polyfill'
 import Vue from 'vue'
 import App from './App'
 import router from './router'
-import fastclick from 'fastclick'
+import fastclick from 'fastclick' // 解决移动端300毫秒延时的问题
+import VueLazyLoad from 'vue-lazyload' // 图片懒加载
 
 import 'common/stylus/index.styl'
 
-fastclick.attach(document.body) // 解决移动端300毫秒延时的问题
+fastclick.attach(document.body)
+Vue.use(VueLazyLoad, {
+  loading: require('common/image/default.png')
+})
 
 Vue.config.productionTip = false
 

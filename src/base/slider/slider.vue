@@ -1,3 +1,11 @@
+<!--
+* @file slider.vue
+* @author qubo
+* @copyright govue.cn
+* @createDate 2018-10-10 17:07:00
+* @desc 幻灯片组件
+-->
+
 <template>
     <div class="slider" ref="slider">
       <div class="slider-group" ref="sliderGroup">
@@ -11,7 +19,7 @@
 
 <script type="text/ecmascript-6">
     import BScroll from 'better-scroll'
-    import {addClass} from '../../common/js/dom'
+    import {addClass} from 'common/js/dom'
 
     export default {
       name: 'slider',
@@ -40,7 +48,7 @@
       },
       methods: {
         // 设置幻灯片宽度
-        _setSliderWidth(isResize) {
+        _setSliderWidth(isResize = false) {
           this.childrens = this.$refs.sliderGroup.children
           let sliderWidth = this.$refs.slider.clientWidth
           let width = 0 // 幻灯片总宽度
@@ -50,7 +58,7 @@
             child.style.width = sliderWidth + 'px' // 设置每一个幻灯片宽度
             width += sliderWidth
           }
-          // 如果是自动轮播将总宽度增加2倍
+          // 如果是自动轮播将总宽度增加2倍并且没有窗口变化的时候
           if (this.loop && !isResize) {
             width += 2 * sliderWidth
           }
@@ -124,7 +132,7 @@
     }
 </script>
 
-<style lang="stylus" rel="stylesheet/stylus">
+<style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
   .slider
     min-height: 1px
