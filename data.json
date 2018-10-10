@@ -1,0 +1,26 @@
+{
+  "singerList": {
+    "code": 0,
+    "data": {
+      "list": [
+        {
+         "Farea": "1",
+          "Fattribute_3": "3",
+          "Fattribute_4": "0",
+          "Fgenre": "0",
+          "Findex": "X",
+          "Fother_name": "Joker",
+          "Fsinger_id": "55",
+          "Fsinger_mid": "222222",
+          "Fsinger_name": "张三",
+          "Fsinger_tag": "xxx",
+          "Fsort": "1",
+          "Ftrend": "0",
+          "Ftype": "0",
+          "voc": "0"
+        },
+        {}
+      ]
+    }
+  }
+}
