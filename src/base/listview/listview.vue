@@ -122,7 +122,7 @@
         /**
          * @method scroll
          * @returns {}
-         * @desc scroll事件处理
+         * @desc scroll组件$emit派发来的scroll事件处理
          */
         scroll(pos) {
           this.scrollY = pos.y
