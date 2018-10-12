@@ -18,6 +18,10 @@
             type: Boolean,
             default: true
           },
+          listenScroll: { // 是否监听scroll滚动事件
+            type: Boolean,
+            default: false
+          },
           data: {
             type: Array,
             default: null
@@ -46,10 +50,19 @@
             if (!this.$refs.wrapper) {
               return
             }
+            // 初始化BScroll对象
             this.scroll = new BScroll(this.$refs.wrapper, {
               probeType: this.probeType,
               click: this.click
             })
+
+            // 如果监听scroll滚动事件,则派发一个事件出去
+            if (this.listenScroll) {
+              let _this = this
+              this.scroll.on('scroll', (pos) => {
+                _this.$emit('scroll', pos)
+              })
+            }
           },
 
           /**
@@ -77,6 +90,22 @@
            */
           refresh() {
             this.scroll && this.scroll.refresh()
+          },
+          /**
+           * @method scrollTo
+           * @returns {}
+           * @desc 代理BScroll的scrollTo方法，需要传入一些参数，这里需要用apply
+           */
+          scrollTo() {
+            this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
+          },
+          /**
+           * @method scrollToElement
+           * @returns {}
+           * @desc 代理BScroll的scrollToElement方法，需要传入一些参数，这里需要用apply
+           */
+          scrollToElement() {
+            this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
           }
         }
     }

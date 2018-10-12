@@ -29,3 +29,18 @@ export function hasClass(el, className) {
   let reg = new RegExp('(^|\\s)' + className + '(\\s|$)')
   return reg.test(el.className)
 }
+
+/**
+ * @method getData
+ * @returns {}
+ * @desc 读取和写入dom中的属性数据（两个参数时为读，三个参数时为写）
+ */
+export function getData(element, name, value) {
+  const prefix = 'data-'
+  name = prefix + name
+  if (value) {
+    return element.setAttribute(name, value)
+  } else {
+    return element.getAttribute(name)
+  }
+}

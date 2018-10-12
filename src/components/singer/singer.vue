@@ -22,7 +22,7 @@
           }
         },
         created() {
-          this._getSingerList()
+          this._getSingerList() // 获取歌手数据
         },
         methods: {
           // 从getSingerLis() api 获取singers数据，此时的数据是原网站上原始格式的，还需要进一步处理
