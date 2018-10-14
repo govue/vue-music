@@ -44,3 +44,35 @@ export function getData(element, name, value) {
     return element.getAttribute(name)
   }
 }
+
+/**
+ * @
+ * @returns {}
+ * @desc 浏览器能力检测，这里先检测出是什么类型的浏览器，然后再根据检测结果给传入的样式添加相应的前缀
+ */
+let elementStyle = document.createElement('div').style
+let vendor = (() => {
+  let transformName = {
+    webkit: 'webkitTransform',
+    Moz: 'MozTransform',
+    O: 'OTransform',
+    ms: 'msTransform',
+    standard: 'transform'
+  }
+  for (let key in transformName) {
+    if (elementStyle[transformName[key]] !== undefined) {
+      return key
+    }
+  }
+  return false
+})()
+
+export function prefixStyle(style) {
+  if (vendor === false) {
+    return false
+  }
+  if (vendor === 'standard') {
+    return style
+  }
+  return vendor + style.charAt(0).toUpperCase() + style.substr(1)
+}

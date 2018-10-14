@@ -1,6 +1,9 @@
 <template>
     <div class="singer">
-      <list-view :data="singers"></list-view>
+      <list-view :data="singers"
+                 @select="showSingerDetail"
+      ></list-view>
+      <router-view></router-view>
     </div>
 </template>
 
@@ -8,8 +11,9 @@
     import {getSingerList} from 'api/singer'
     import {ERR_OK} from 'api/config'
     import Mtils from 'mtils' // Mtils是一套前端代码集合，提供常用的数据校验、数据加密、扩展函数、便捷函数:https://github.com/MisterChangRay/Mtils2
-    import Singer from 'common/js/class/Singer'
+    import Singer from 'common/js/class/Singer' // Singer类，处理数据时用
     import ListView from 'base/listview/listview'
+    import {mapMutations} from 'vuex' // vuex提供的写数据的语法糖
 
     const HOT_NAME = '热门'
     const HOT_SINGER_LENGTH = 10
@@ -25,6 +29,17 @@
           this._getSingerList() // 获取歌手数据
         },
         methods: {
+          /**
+           * @computed showSingerDetail
+           * @returns {}
+           * @desc 根据子组件派发过来的select事件，执行显示歌手详情页
+           */
+          showSingerDetail(singer) {
+            this.$router.push({
+              path: `/singer/${singer.id}`
+            })
+            this.setSinger(singer) // 将singer数据写入vuex中，该方法通过...mapMutations（）语法糖是关联的
+          },
           // 从getSingerLis() api 获取singers数据，此时的数据是原网站上原始格式的，还需要进一步处理
           _getSingerList() {
             getSingerList().then((res) => {
@@ -83,7 +98,15 @@
               return a.title.charCodeAt(0) - b.title.charCodeAt(0)
             })
             return hotArr.concat(otherArr)
-          }
+          },
+          /**
+           * @computed mapMutations
+           * @returns {}
+           * @desc mapMutations将需要操作的数据做映射，
+           */
+          ...mapMutations({
+            setSinger: 'SET_SINGER'
+          })
         },
         components: {
           ListView

@@ -12,12 +12,16 @@
           :probeType="probeType"
           v-if="data.length"
           ref="listview"
-          @scroll="scroll">
+          @scroll="scroll"> <!-- 这里监听子组件派发过来的scroll事件,接收到派发过来的事件后再去执行本组件的scroll函数 -->
     <ul>
       <li class="list-group" v-for="(group,index) in data" :key="index" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
         <ul>
-          <li class="list-group-item" v-for="(item,index) in group.items" :key="index">
+          <li class="list-group-item"
+              v-for="(item,index) in group.items"
+              :key="index"
+              @click="selectItem(item)"
+          >
             <img class="avatar" v-lazy="item.pic" alt="">
             <span class="name">{{item.name}}</span>
           </li>
@@ -69,7 +73,7 @@
         }
       },
       created() {
-        this.touch = [] // 在data()与props里的数据vue会自动添加getter与setter并监听数据变化，放created里则不会
+        this.touch = [] // 存放touch时的数据，在data()与props里的数据vue会自动添加getter与setter并监听数据变化，放created里则不会
         this.listenScroll = true // 是否监听scroll组件滚动事件
         this.listGroupHeight = [] // 存放listGroup高度的数组
         this.probeType = 3 // 监听模式
@@ -87,7 +91,7 @@
         },
         /**
          * @computed fixedTitle
-         * @returns {Strien}
+         * @returns {Strieng}
          * @desc 根据currentIndex获取fixedTitle
          */
         fixedTitle() {
@@ -126,6 +130,14 @@
          */
         scroll(pos) {
           this.scrollY = pos.y
+        },
+        /**
+         * @method selectItem
+         * @returns {}
+         * @desc 派发一个select事件给父元素
+         */
+        selectItem(item) {
+          this.$emit('select', item)
         },
         /**
          * @method scrollTo

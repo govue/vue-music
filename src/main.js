@@ -4,6 +4,7 @@ import 'babel-polyfill'
 import Vue from 'vue'
 import App from './App'
 import router from './router'
+import store from './store'
 import fastclick from 'fastclick' // 解决移动端300毫秒延时的问题
 import VueLazyLoad from 'vue-lazyload' // 图片懒加载
 
@@ -20,6 +21,7 @@ Vue.config.productionTip = false
 new Vue({
   el: '#app',
   router,
+  store,
   components: { App },
   template: '<App/>'
 })
