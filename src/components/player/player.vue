@@ -28,7 +28,7 @@
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd">
-                <img class="image" :src="currentSong.image">
+                <img :class="cdClass" class="image" :src="currentSong.image">
               </div>
             </div>
           </div>
@@ -41,8 +41,8 @@
             <div class="icon i-left">
               <i class="icon-prev"></i>
             </div>
-            <div class="icon i-center">
-              <i class="icon-play"></i>
+            <div class="icon i-center" @click="togglePlay">
+              <i :class="playIcon"></i>
             </div>
             <div class="icon i-right">
               <i class="icon-next"></i>
@@ -57,19 +57,21 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <img :src="currentSong.image" width="40" height="40">
+          <img :class="cdClass" :src="currentSong.image" width="40" height="40">
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
-        <div class="control">
+        <div class="control" @click.stop="togglePlay">
+          <i :class="miniIcon"></i>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <audio :src="currentSong.url" ref="audio"></audio>
   </div>
 </template>
 
@@ -83,11 +85,39 @@
   export default {
     name: 'player',
     computed: {
+      // 监听vuex中playing值有变化时，切换全屏播放器播放的控制图标
+      playIcon() {
+        return this.playing ? 'icon-pause' : 'icon-play'
+      },
+      // 监听vuex中playing值有变化时，切换mini播放器播放的控制图标
+      miniIcon() {
+        return this.playing ? 'icon-pause' : 'icon-play'
+      },
+      // 监听vuex中playing值有变化时，通过cdClass变化的样式值来控制cd旋转动画
+      cdClass() {
+        return this.playing ? 'play' : 'play pause'
+      },
       ...mapGetters([// 通过vuex提供的mapGetter将fullScreen、playlist数据扩展到组件的computed属性中
         'fullScreen',
         'playlist',
-        'currentSong' // 当时播放的歌曲
+        'currentSong', // 当时播放的歌曲
+        'playing' // 播放状态
       ])
+    },
+    watch: {
+      // watch到currentSong有值变化是就播放
+      currentSong() {
+        this.$nextTick(() => { // 这里是要等aduio里面有了url值后再播放
+          this.$refs.audio.play()
+        })
+      },
+      // watch到playing值有变化时，比如播放暂停
+      playing(newPlaying) {
+        const audio = this.$refs.audio
+        this.$nextTick(() => {
+          newPlaying ? audio.play() : audio.pause() // 为真为播放，为假时暂停
+        })
+      }
     },
     methods: {
       /**
@@ -104,8 +134,12 @@
        * mapMutations将需要操作的数据做映射，即将mutations里的操作映射成用户当前组件自定义的方法
        */
       ...mapMutations({
-        setFullScreen: 'SET_FULL_SCREEN'
+        setFullScreen: 'SET_FULL_SCREEN',
+        setPlayingState: 'SET_PLAYING_STATE'
       }),
+      togglePlay() {
+        this.setPlayingState(!this.playing) // 播放、暂停切换，这里设置了vuex中的playing值后，在wathc里面还要watch playing值的变化来实现播放器控制
+      },
       // ---------动画开始：下面为fullScreen展开时的动画，从miniPlayer左下角的小图片飞出放大到展开的“光盘”处
       enter(el, done) { // done为下一个执行的函数
         const {x, y, scale} = this._getPosAndScale()
@@ -254,10 +288,6 @@
               box-sizing: border-box
               border: 10px solid rgba(255, 255, 255, 0.1)
               border-radius: 50%
-              &.play
-                animation: rotate 20s linear infinite
-              &.pause
-                animation-play-state: paused
               .image
                 position: absolute
                 left: 0
@@ -265,6 +295,10 @@
                 width: 100%
                 height: 100%
                 border-radius: 50%
+                &.play
+                  animation: rotate 20s linear infinite
+                &.pause
+                  animation-play-state: paused
 
           .playing-lyric-wrapper
             width: 80%
@@ -403,5 +437,9 @@
           position: absolute
           left: 0
           top: 0
-
+  @keyframes rotate
+    0%
+      transform: rotate(0)
+    100%
+      transform rotate(360deg)
 </style>
