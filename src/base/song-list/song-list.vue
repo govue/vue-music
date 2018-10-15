@@ -8,7 +8,11 @@
 <template>
   <div class="song-list">
     <ul>
-      <li class="item" v-for="(song,index) in songs" :key="index">
+      <li class="item"
+          v-for="(song,index) in songs"
+          :key="index"
+          @click="selectItem(song,index)"
+      >
         <div class="content">
           <h2 class="name">{{song.name}}</h2>
           <p class="desc">{{getDesc(song)}}</p>
@@ -28,8 +32,21 @@
       }
     },
     methods: {
+      /**
+       * @function 拼接desc字符
+       * @param song
+       * @returns {string}
+       */
       getDesc(song) {
         return `${song.singer} . ${song.album}`
+      },
+      /**
+       * 当点击歌曲的时候，向父组件派发一个select事件，并将歌曲和index传出去
+       * @param item
+       * @param index
+       */
+      selectItem(item, index) {
+        this.$emit('select', item, index)
       }
     }
   }

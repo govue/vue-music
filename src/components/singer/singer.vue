@@ -102,7 +102,7 @@
           /**
            * @computed mapMutations
            * @returns {}
-           * @desc mapMutations将需要操作的数据做映射，
+           * @desc mapMutations将需要操作的数据做映射
            */
           ...mapMutations({
             setSinger: 'SET_SINGER'

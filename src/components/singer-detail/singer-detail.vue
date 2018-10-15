@@ -60,14 +60,15 @@
         })
       },
       /**
-       * @computed mapMutations
-       * @returns {}
-       * @desc mapMutations将需要操作的数据做映射，
+       * @function对传过来的list进行重新按规则处理
+       * @param list
+       * @returns {Array}
+       * @private
        */
       _normalizeSongs(list) {
         let ret = []
         list.forEach((item) => {
-          let {musicData} = item // 这里 {musicData} 赋值是自动匹配item里面的musicData
+          let {musicData} = item // 因为item传过来里面有很多数据，其中musicData是item里面一项，这里 {musicData} 赋值是自动匹配item里面的musicData项数据
           if (musicData.songid && musicData.albumid) {
             ret.push(createSong(musicData))
           }

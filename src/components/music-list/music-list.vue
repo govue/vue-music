@@ -28,7 +28,9 @@
               @scroll="scroll"
               ref="list">
         <div class="song-list-wrapper">
-          <song-list :songs="songs"></song-list>
+          <song-list :songs="songs"
+                     @select="selectItem"
+          ></song-list>
           <div class="loading-container" v-show="!songs.length">
             <loading></loading>
           </div>
@@ -42,6 +44,7 @@
   import SongList from 'base/song-list/song-list' // 引入歌曲列表组件
   import {prefixStyle} from 'common/js/dom' // 引入浏览器能力检测，添加相应前缀
   import Loading from 'base/loading/loading' // 异步加载动画
+  import {mapActions} from 'vuex' // vuex提供的代理actions的语法糖
 
   const RESERVED_HEIGHT = 40 // bg-laye层向上滚动时预留的高度，即滚动不超过标题部分
 
@@ -89,9 +92,22 @@
         this.scrollY = pos.y // 实时记录子组件派发过来的scroll事件
       },
       back() {
-        console.log('back')
         this.$router.back()
-      }
+      },
+      /**
+       * 当点击歌曲时，通过vuex的mapActions映射过来的selectPlay方法将点击的歌曲传入vuex，这里是传的当前歌下下的歌曲列表
+       * @param item
+       * @param index
+       */
+      selectItem(item, index) {
+        this.selectPlay({
+          list: this.songs, // 这里不传item是因为把所有歌曲列表传进去，也可以传item，但这时就是传了一首歌
+          index
+        })
+      },
+      ...mapActions([
+        'selectPlay' // 当点击歌曲时执行
+      ])
     },
     watch: {
       scrollY(newY) {
