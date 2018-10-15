@@ -42,7 +42,7 @@
 <script type="text/ecmascript-6">
   import Scroll from 'base/scroll/scroll' // 引入自定义的scrlll组件
   import SongList from 'base/song-list/song-list' // 引入歌曲列表组件
-  import {prefixStyle} from 'common/js/dom' // 引入浏览器能力检测，添加相应前缀
+  import {prefixStyle} from 'common/js/dom' // 引入浏览器能力检测，添加css相应前缀
   import Loading from 'base/loading/loading' // 异步加载动画
   import {mapActions} from 'vuex' // vuex提供的代理actions的语法糖
 

@@ -75,7 +75,10 @@
 
 <script type="text/ecmascript-6">
   import {mapGetters, mapMutations} from 'vuex' // vues提供的读数据、写数据语法糖
-  import animations from 'create-keyframe-animation'
+  import Animations from 'create-keyframe-animation' // 引入第三方动画组件库
+  import {prefixStyle} from 'common/js/dom' // 引入浏览器能力检测，添加css相应前缀
+
+  const transform = prefixStyle('transform')
 
   export default {
     name: 'player',
@@ -119,24 +122,34 @@
           }
         }
 
-        animations.registerAnimation({
+        // 注册动画
+        Animations.registerAnimation({
           name: 'move',
           animation,
-          presets: {
-            duration: 400,
-            easing: 'linear'
+          presets: { // 预设
+            duration: 400, // 动画时间
+            easing: 'linear' // 动画轨迹方式
           }
         })
 
-        animations.runAnimatin(this.$refs.cdWrapper, 'move', done)
+        // 执行动画
+        Animations.runAnimation(this.$refs.cdWrapper, 'move', done) // 这里的done为afterEnter()函数
       },
       afterEnter() {
-        animations.unregisterAnimation('move')
+        // 释放资源
+        Animations.unregisterAnimation('move')
+        // 将dom中的animation属性清空
         this.$refs.cdWrapper.style.animation = ''
       },
       leave(el, done) {
+        this.$refs.cdWrapper.style.transition = 'all 0.4s'
+        const {x, y, scale} = this._getPosAndScale()
+        this.$refs.cdWrapper.style[transform] = `translate3d(${x}px,${y}px,0) scale(${scale})`
+        this.$refs.cdWrapper.addEventListener('transitionend', done) // 这里是要等动画完成再去执行afterLeave()
       },
       afterLeave() {
+        this.$refs.cdWrapper.style.transition = ''
+        this.$refs.cdWrapper.style[transform] = ''
       },
       _getPosAndScale() {
         const targetWidth = 40 // miniPlayer左下角小图片的大小
