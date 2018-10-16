@@ -34,17 +34,24 @@
           </div>
         </div>
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{formatTime(songPlayingTime)}}</span>
+            <div class="progress-bar-wrapper">
+              <progress-bar :percent="percent" @percentChange="onProgressBarChange"></progress-bar>
+            </div>
+            <span class="time time-r">{{formatTime(songDurationTime)}}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left">
               <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
+            <div class="icon i-left" @click="prev" :class="songDisableClass">
               <i class="icon-prev"></i>
             </div>
-            <div class="icon i-center" @click="togglePlay">
+            <div class="icon i-center" @click="togglePlay" :class="songDisableClass">
               <i :class="playIcon"></i>
             </div>
-            <div class="icon i-right">
+            <div class="icon i-right" @click="next" :class="songDisableClass">
               <i class="icon-next"></i>
             </div>
             <div class="icon i-right">
@@ -71,7 +78,12 @@
         </div>
       </div>
     </transition>
-    <audio :src="currentSong.url" ref="audio"></audio>
+    <audio :src="currentSong.url"
+           ref="audio"
+           @canplay="canplay"
+           @error="error"
+           @timeupdate="timeUpdate"
+    ></audio>
   </div>
 </template>
 
@@ -79,11 +91,19 @@
   import {mapGetters, mapMutations} from 'vuex' // vues提供的读数据、写数据语法糖
   import Animations from 'create-keyframe-animation' // 引入第三方动画组件库
   import {prefixStyle} from 'common/js/dom' // 引入浏览器能力检测，添加css相应前缀
+  import ProgressBar from 'base/progress-bar/progress-bar' // 引入normal播放器底部进度条
 
   const transform = prefixStyle('transform')
 
   export default {
     name: 'player',
+    data() {
+      return {
+        songCanplay: false, // 歌曲能否点击，解决当点击next和prev时异步加载不到歌曲资源用
+        songPlayingTime: 0, // 当前播放歌曲的播放用去的时长
+        songDurationTime: 0 // 光前播放歌曲的总时间
+      }
+    },
     computed: {
       // 监听vuex中playing值有变化时，切换全屏播放器播放的控制图标
       playIcon() {
@@ -97,15 +117,24 @@
       cdClass() {
         return this.playing ? 'play' : 'play pause'
       },
+      // 监听this.songCanplay,当canplay为true时class不变化，当canplay为false时添加disable class
+      songDisableClass() {
+        return this.songCanplay ? '' : 'disable'
+      },
+      // 计算当前歌曲播放到的百分比，传入progress-bar控制播放进度
+      percent() {
+        return this.songPlayingTime / this.songDurationTime
+      },
       ...mapGetters([// 通过vuex提供的mapGetter将fullScreen、playlist数据扩展到组件的computed属性中
         'fullScreen',
         'playlist',
-        'currentSong', // 当时播放的歌曲
+        'currentIndex', // 当前播放歌曲的index
+        'currentSong', // 当前播放的歌曲
         'playing' // 播放状态
       ])
     },
     watch: {
-      // watch到currentSong有值变化是就播放
+      // watch到currentSong有值变化时就播放
       currentSong() {
         this.$nextTick(() => { // 这里是要等aduio里面有了url值后再播放
           this.$refs.audio.play()
@@ -126,20 +155,102 @@
       back() {
         this.setFullScreen(false)
       },
-      // 点击底部的mini播放器时，设置vuex中的fullScreen为False,全屏显示播放器
-      open() {
+      /**
+       *点击底部的mini播放器时，设置vuex中的fullScreen为False,全屏显示播放器
+       */
+       open() {
         this.setFullScreen(true)
+      },
+      /**
+       * 播放、暂停切换
+       */
+      togglePlay() {
+        this.setPlayingState(!this.playing) // 播放、暂停切换，这里设置了vuex中的playing值后，在wathc里面还要watch playing值的变化来实现播放器控制
+      },
+      /**
+       * 下一曲
+       */
+      next() {
+        // 解决快速点击时audio加载不到歌曲资源报错
+        if (!this.songCanplay) {
+          return
+        }
+        let index = this.currentIndex + 1
+        if (index === this.playlist.length) {
+          index = 0
+        }
+        this.setCurrentIndex(index)
+        // 如果点下一曲的时候，播放状态为暂停，则将歌曲置为播放状态
+        if (!this.playing) {
+          this.togglePlay()
+        }
+        this.songCanplay = false // 当播放一首歌开始时同时将songCanplay置为false，等歌曲播放时的canplay事件将songCanplay置为true
+      },
+      /**
+       * 上一曲
+       */
+      prev() {
+        // 解决快速点击时audio加载不到歌曲资源报错
+        if (!this.songCanplay) {
+          return
+        }
+        let index = this.currentIndex - 1
+        if (index === -1) {
+          index = this.playlist.length - 1
+        }
+        this.setCurrentIndex(index)
+        // 如果点上一曲的时候，播放状态为暂停，则将歌曲置为播放状态
+        if (!this.playing) {
+          this.togglePlay()
+        }
+        this.songCanplay = false // 当播放一首歌开始时同时将songCanplay置为false，等歌曲播放时的canplay事件将songCanplay置为true
+      },
+      /**
+       * audio派发过来的canplay事件执行方法，即歌曲资源加载好了，可以进行播放了
+       */
+      canplay() {
+        this.songCanplay = true
+      },
+      /**
+       * audio派发过来的error事件执行方法，这里解决当songCanplay在false时，网络或其它原因造成audio报错而无法将songCangplay置为true，这里next\prev按键就失效的问题
+       */
+      error() {
+        this.songCanplay = true
+      },
+      /**
+       * audio派发过来的timeupdate事件执行方法，即获取到歌曲播放的时间
+       */
+      timeUpdate(e) {
+        this.songPlayingTime = e.target.currentTime // 获取当前播放到的时间点，e.target.currentTime是一个时间戳，也是一个可读写的属性，可以通过修改来控制播放的进度
+        this.songDurationTime = e.target.duration // 获取当前播放歌曲的总时间，也可以在div中用{{currentSong.duration}}来获取得到
+      },
+      /**
+       * timeUpdate得到的时候是时间戳，这里进行格式化处理
+       */
+      formatTime(interval) {
+        interval = interval | 0 // | 或0 为向下取整
+        const minute = interval / 60 | 0
+        const second = interval % 60
+        return `${minute}:${second}`
+      },
+      /**
+       * 根据progress-bar派发过来的percentChange事件来控制歌曲到指定位置播放
+       */
+      onProgressBarChange(percent) {
+        this.$refs.audio.currentTime = this.songDurationTime * percent
+        // 如果拖动后，播放状态为暂停，则将歌曲置为播放状态
+        if (!this.playing) {
+          this.togglePlay()
+        }
       },
       /**
        * mapMutations将需要操作的数据做映射，即将mutations里的操作映射成用户当前组件自定义的方法
        */
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
-        setPlayingState: 'SET_PLAYING_STATE'
+        setPlayingState: 'SET_PLAYING_STATE',
+        setCurrentIndex: 'SET_CURRENT_INDEX'
       }),
-      togglePlay() {
-        this.setPlayingState(!this.playing) // 播放、暂停切换，这里设置了vuex中的playing值后，在wathc里面还要watch playing值的变化来实现播放器控制
-      },
       // ---------动画开始：下面为fullScreen展开时的动画，从miniPlayer左下角的小图片飞出放大到展开的“光盘”处
       enter(el, done) { // done为下一个执行的函数
         const {x, y, scale} = this._getPosAndScale()
@@ -199,6 +310,9 @@
         }
       }
       // ---------动画结束
+    },
+    components: {
+      ProgressBar
     }
   }
 </script>
