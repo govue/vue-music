@@ -81,7 +81,6 @@
        * @param e
        */
       progressClick(e) {
-        console.log('e')
         const offsetWidth = e.offsetX
         this._offset(offsetWidth) // 控制进度条跳转
         this._triggerPercent()// 派发一个事件，控制歌曲跳转到拖动的地方

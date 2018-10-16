@@ -43,7 +43,7 @@
           </div>
           <div class="operators">
             <div class="icon i-left">
-              <i class="icon-sequence"></i>
+              <i :class="iconMode" @click="changeMode"></i>
             </div>
             <div class="icon i-left" @click="prev" :class="songDisableClass">
               <i class="icon-prev"></i>
@@ -71,7 +71,9 @@
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control" @click.stop="togglePlay">
-          <i :class="miniIcon"></i>
+          <progress-circle :radius="32" :percent="percent">
+            <i class="icon-mini" :class="miniIcon"></i>
+          </progress-circle>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
@@ -92,6 +94,9 @@
   import Animations from 'create-keyframe-animation' // 引入第三方动画组件库
   import {prefixStyle} from 'common/js/dom' // 引入浏览器能力检测，添加css相应前缀
   import ProgressBar from 'base/progress-bar/progress-bar' // 引入normal播放器底部进度条
+  import ProgressCircle from 'base/progress-circle/progress-circle' // 引入mini播放器右下角有圆形进度条
+  import {playMode} from 'common/js/config' // 引入播放模式常量
+  import {shuffle} from 'common/js/util'
 
   const transform = prefixStyle('transform')
 
@@ -125,12 +130,17 @@
       percent() {
         return this.songPlayingTime / this.songDurationTime
       },
+      // 计算播放模式图标
+      iconMode() {
+        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+      },
       ...mapGetters([// 通过vuex提供的mapGetter将fullScreen、playlist数据扩展到组件的computed属性中
         'fullScreen',
         'playlist',
         'currentIndex', // 当前播放歌曲的index
         'currentSong', // 当前播放的歌曲
-        'playing' // 播放状态
+        'playing', // 播放状态
+        'mode' // 播放状态
       ])
     },
     watch: {
@@ -206,6 +216,20 @@
         this.songCanplay = false // 当播放一首歌开始时同时将songCanplay置为false，等歌曲播放时的canplay事件将songCanplay置为true
       },
       /**
+       * 切换播放模式
+       */
+      changeMode1() {
+        const mode = (this.mode + 1) % 3
+        this.setPlayMode(mode) // 修改vuex里面mode的值
+        let list = null
+        if (mode === playMode.random || list) {
+          list = shuffle(this.sequenceList)
+        } else {
+          list = this.sequenceList
+        }
+        this.setPlayList(list)
+      },
+      /**
        * audio派发过来的canplay事件执行方法，即歌曲资源加载好了，可以进行播放了
        */
       canplay() {
@@ -249,7 +273,9 @@
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
         setPlayingState: 'SET_PLAYING_STATE',
-        setCurrentIndex: 'SET_CURRENT_INDEX'
+        setCurrentIndex: 'SET_CURRENT_INDEX',
+        setPlayMode: 'SET_PLAY_MODE',
+        setPlayList: 'SET_PLAY_LIST'
       }),
       // ---------动画开始：下面为fullScreen展开时的动画，从miniPlayer左下角的小图片飞出放大到展开的“光盘”处
       enter(el, done) { // done为下一个执行的函数
@@ -312,7 +338,8 @@
       // ---------动画结束
     },
     components: {
-      ProgressBar
+      ProgressBar,
+      ProgressCircle
     }
   }
 </script>
@@ -547,10 +574,10 @@
           font-size: 30px
           color: $color-theme-d
         .icon-mini
-          font-size: 32px
+          font-size: 24px
           position: absolute
-          left: 0
-          top: 0
+          left: 4px
+          top: 4px
   @keyframes rotate
     0%
       transform: rotate(0)
