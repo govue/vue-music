@@ -81,8 +81,11 @@
        * @param e
        */
       progressClick(e) {
-        const offsetWidth = e.offsetX
+        const rect = this.$refs.progressBar.getBoundingClientRect() // 获取进度条DOMRect对象
+        const offsetWidth = e.pageX - rect.left // 获取进度条左边离屏幕的尺寸
         this._offset(offsetWidth) // 控制进度条跳转
+        // 当点击进度条上的圆圈按钮时，e.offsetX获取就不对，会造成进度条跳转出错的问题
+        // this._offset(e.offsetX) // 控制进度条跳转
         this._triggerPercent()// 派发一个事件，控制歌曲跳转到拖动的地方
       },
       _triggerPercent() {

@@ -24,7 +24,11 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
+        <div class="middle"
+             @touchstart.prevent="middleTouchStart"
+             @touchmove.prevent="middleTouchMove"
+             @touchEnd="middleTouchEnd"
+        >
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd">
@@ -32,8 +36,27 @@
               </div>
             </div>
           </div>
+          <scroll class="middle-r"
+                  ref="lyricList"
+                  :data="currentLyric && currentLyric.lines"
+          >
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p class="text"
+                   ref="lyricLine"
+                   v-for="(line,index) in currentLyric.lines"
+                   :key="index"
+                   :class="{'current': currentLyricLineNum===index}"
+                >{{line.txt}}</p>
+              </div>
+            </div>
+          </scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active':currentShow==='cd'}"></span>
+            <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{formatTime(songPlayingTime)}}</span>
             <div class="progress-bar-wrapper">
@@ -85,6 +108,7 @@
            @canplay="canplay"
            @error="error"
            @timeupdate="timeUpdate"
+           @ended="ended"
     ></audio>
   </div>
 </template>
@@ -96,7 +120,9 @@
   import ProgressBar from 'base/progress-bar/progress-bar' // 引入normal播放器底部进度条
   import ProgressCircle from 'base/progress-circle/progress-circle' // 引入mini播放器右下角有圆形进度条
   import {playMode} from 'common/js/config' // 引入播放模式常量
-  import {shuffle} from 'common/js/util'
+  import {shuffle} from 'common/js/util' // 引入数组随机打乱函数
+  import Lyric from 'lyric-parser' // 引入歌词处理类
+  import Scroll from 'base/scroll/scroll' // 自定义的scroll组件
 
   const transform = prefixStyle('transform')
 
@@ -106,8 +132,14 @@
       return {
         songCanplay: false, // 歌曲能否点击，解决当点击next和prev时异步加载不到歌曲资源用
         songPlayingTime: 0, // 当前播放歌曲的播放用去的时长
-        songDurationTime: 0 // 光前播放歌曲的总时间
+        songDurationTime: 0, // 光前播放歌曲的总时间
+        currentLyric: null, // 当前播放歌曲的歌词
+        currentLyricLineNum: 0, // 当前歌词所在的行
+        currentShow: 'cd' // 播放页显示的内容，有cd和lyric，初始为cd
       }
+    },
+    created() {
+      this.touch = {} // 定义控制cd和lyric左右滑动的touch变量，这里定义是因为该变量不需要setter和getter
     },
     computed: {
       // 监听vuex中playing值有变化时，切换全屏播放器播放的控制图标
@@ -136,7 +168,8 @@
       },
       ...mapGetters([// 通过vuex提供的mapGetter将fullScreen、playlist数据扩展到组件的computed属性中
         'fullScreen',
-        'playlist',
+        'sequenceList', // 播放器播放的原始歌曲列表，列表用来做随机等给playlist用
+        'playlist', // 播放器需要播放的歌曲列表
         'currentIndex', // 当前播放歌曲的index
         'currentSong', // 当前播放的歌曲
         'playing', // 播放状态
@@ -145,9 +178,14 @@
     },
     watch: {
       // watch到currentSong有值变化时就播放
-      currentSong() {
+      currentSong(newSong, oldSong) {
+        // 当切换到随机模式时，歌曲打乱，但在打乱后的数组中重新找到当前正在播放的歌曲，并重新设置了currentIndex，这时会watch到变化，如果此时是暂停状态，则会触发播放，而播放的歌是另外的歌，这里解决这个bug,即随机前后只要当前播放的歌是同一首（currentSong.id不变）则其它逻辑也不执行
+        if (newSong.id === oldSong.id) {
+          return
+        }
         this.$nextTick(() => { // 这里是要等aduio里面有了url值后再播放
           this.$refs.audio.play()
+          this.getLyric() // 歌词处理
         })
       },
       // watch到playing值有变化时，比如播放暂停
@@ -218,16 +256,26 @@
       /**
        * 切换播放模式
        */
-      changeMode1() {
+      changeMode() {
         const mode = (this.mode + 1) % 3
         this.setPlayMode(mode) // 修改vuex里面mode的值
         let list = null
-        if (mode === playMode.random || list) {
-          list = shuffle(this.sequenceList)
+        if (mode === playMode.random) {
+          list = shuffle(this.sequenceList) // 根据vuex中顺序的歌曲列表来生成一个随机列表
+          this.resetCurrentIndex(list) // 在打乱后的数组中打开当前播放的歌曲所在的位置
         } else {
           list = this.sequenceList
         }
-        this.setPlayList(list)
+        this.setPlaylist(list)
+      },
+      /**
+       * 当随机打乱播放列表后，当前播放的歌曲index对应到随机打乱后的list时就不是当前正在播放的歌曲，这里在打乱后的数组中去找到当前播放歌曲所在的位置
+       */
+      resetCurrentIndex(list) {
+        let index = list.findIndex((item) => {
+          return item.id === this.currentSong.id
+        })
+        this.setCurrentIndex(index) // 将当前播放歌的索引重新设置成打乱后list中对应的索引
       },
       /**
        * audio派发过来的canplay事件执行方法，即歌曲资源加载好了，可以进行播放了
@@ -247,6 +295,48 @@
       timeUpdate(e) {
         this.songPlayingTime = e.target.currentTime // 获取当前播放到的时间点，e.target.currentTime是一个时间戳，也是一个可读写的属性，可以通过修改来控制播放的进度
         this.songDurationTime = e.target.duration // 获取当前播放歌曲的总时间，也可以在div中用{{currentSong.duration}}来获取得到
+      },
+      /**
+       *audio派发过来的ended事件执行方法
+       */
+      ended() {
+        // 如果是单曲循环播放
+        if (this.mode === playMode.loop) {
+          this.loop()
+        } else { // 如果是其它播放模式，则按playlist列表中的顺序播放
+          this.next()
+        }
+      },
+      /**
+       * 单曲循环播放
+       */
+      loop() {
+        this.$refs.audio.currentTiem = 0
+        this.$refs.audio.play()
+      },
+      /**
+       * 将api获取到歌词转成需要的格式
+       */
+      getLyric() {
+        this.currentSong.getLyric().then((lyric) => {
+          this.currentLyric = new Lyric(lyric, this.handleLyric)
+          // 如果歌曲是播放状态，则歌词也开始同步播放
+          if (this.playing) {
+            this.currentLyric.play()
+          }
+        })
+      },
+      /**
+       * Lyric类回调函数
+       */
+      handleLyric({lineNum, txt}) {
+        this.currentLyricLineNum = lineNum // 得到当前播放的歌词所在行
+        if (lineNum > 5) { // 如果当前歌词行大于5行
+          let lineElement = this.$refs.lyricLine[lineNum - 5]
+          this.$refs.lyricList.scrollToElement(lineElement, 1000)
+        } else { // 如果小于5行，就在顶部
+          this.$refs.lyricList.scrollToElement(0, 0, 1000)
+        }
       },
       /**
        * timeUpdate得到的时候是时间戳，这里进行格式化处理
@@ -275,7 +365,7 @@
         setPlayingState: 'SET_PLAYING_STATE',
         setCurrentIndex: 'SET_CURRENT_INDEX',
         setPlayMode: 'SET_PLAY_MODE',
-        setPlayList: 'SET_PLAY_LIST'
+        setPlaylist: 'SET_PLAYLIST'
       }),
       // ---------动画开始：下面为fullScreen展开时的动画，从miniPlayer左下角的小图片飞出放大到展开的“光盘”处
       enter(el, done) { // done为下一个执行的函数
@@ -334,12 +424,37 @@
         return {
           x, y, scale
         }
-      }
+      },
       // ---------动画结束
+      // ---------middleTouch开始
+      middleTouchStart(e) {
+        this.touch.initiated = true
+        const touch = e.touches[0]
+        this.touch.startX = touch.pageX
+        this.touch.startY = touch.pageY
+      },
+      middleTouchMove(e) {
+        if (!this.touch.initiated) {
+          return
+        }
+        const touch = e.touches[0]
+        const deltaX = touch.pageX - this.touch.startX
+        const deltaY = touch.pageY - this.touch.startY
+        // 如果是纵向滑动则不处理
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          return
+        }
+        const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
+        const width = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${width}px,0,0)` // 因为lyricList是vue组件，这里只能是$el来获取
+      },
+      middleTouchEnd() {}
+      // ---------middleTouch结束
     },
     components: {
       ProgressBar,
-      ProgressCircle
+      ProgressCircle,
+      Scroll
     }
   }
 </script>
@@ -431,10 +546,10 @@
               border-radius: 50%
               .image
                 position: absolute
-                left: 0
-                top: 0
-                width: 100%
-                height: 100%
+                left: 11
+                top: 11
+                width: 94%
+                height: 94%
                 border-radius: 50%
                 &.play
                   animation: rotate 20s linear infinite

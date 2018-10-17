@@ -12,7 +12,11 @@
       </div>
       <h1 class="title" v-html="title"></h1>
       <div class="bg-image" :style="bgStyle" ref="bgImage">
-        <div class="play-wrapper" v-show="songs.length>0" ref="playButton">
+        <div class="play-wrapper"
+             v-show="songs.length>0"
+             ref="playButton"
+             @click="random"
+        >
           <div class="play">
             <i class="icon-play"></i>
             <span class="text">随机播放全部</span>
@@ -105,8 +109,17 @@
           index
         })
       },
+      /**
+       * 随机播放歌曲
+       */
+      random() {
+        this.randomPlay({
+          list: this.songs
+        })
+      },
       ...mapActions([
-        'selectPlay' // 当点击歌曲时执行
+        'selectPlay', // 当点击歌曲时执行
+        'randomPlay' // 当点击 随机播放全部 按钮时执行
       ])
     },
     watch: {
