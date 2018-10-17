@@ -27,13 +27,16 @@
         <div class="middle"
              @touchstart.prevent="middleTouchStart"
              @touchmove.prevent="middleTouchMove"
-             @touchEnd="middleTouchEnd"
+             @touchend="middleTouchEnd"
         >
-          <div class="middle-l">
+          <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd">
                 <img :class="cdClass" class="image" :src="currentSong.image">
               </div>
+            </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric-txt">{{playingLyricTxt}}</div>
             </div>
           </div>
           <scroll class="middle-r"
@@ -125,6 +128,7 @@
   import Scroll from 'base/scroll/scroll' // 自定义的scroll组件
 
   const transform = prefixStyle('transform')
+  const transitionDuration = prefixStyle('transitionDuration')
 
   export default {
     name: 'player',
@@ -135,7 +139,8 @@
         songDurationTime: 0, // 光前播放歌曲的总时间
         currentLyric: null, // 当前播放歌曲的歌词
         currentLyricLineNum: 0, // 当前歌词所在的行
-        currentShow: 'cd' // 播放页显示的内容，有cd和lyric，初始为cd
+        currentShow: 'cd', // 播放页显示的内容，有cd和lyric，初始为cd
+        playingLyricTxt: '' // 当前播放歌词中对应时间的播放歌词项
       }
     },
     created() {
@@ -183,10 +188,14 @@
         if (newSong.id === oldSong.id) {
           return
         }
-        this.$nextTick(() => { // 这里是要等aduio里面有了url值后再播放
+        // 因为currentLyric里面有定时器，当快速切换歌曲的时候如果不清除掉就会造成定时器重替
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
+        setTimeout(() => { // 这里是要等aduio里面有了url值后再播放
           this.$refs.audio.play()
           this.getLyric() // 歌词处理
-        })
+        }, 1000)
       },
       // watch到playing值有变化时，比如播放暂停
       playing(newPlaying) {
@@ -213,7 +222,14 @@
        * 播放、暂停切换
        */
       togglePlay() {
+        // 解决快速点击时audio加载不到歌曲资源报错
+        if (!this.songCanplay) {
+          return
+        }
         this.setPlayingState(!this.playing) // 播放、暂停切换，这里设置了vuex中的playing值后，在wathc里面还要watch playing值的变化来实现播放器控制
+        if (this.currentLyric) {
+          this.currentLyric.togglePlay() // 歌词也播放、暂停切换
+        }
       },
       /**
        * 下一曲
@@ -223,14 +239,18 @@
         if (!this.songCanplay) {
           return
         }
-        let index = this.currentIndex + 1
-        if (index === this.playlist.length) {
-          index = 0
-        }
-        this.setCurrentIndex(index)
-        // 如果点下一曲的时候，播放状态为暂停，则将歌曲置为播放状态
-        if (!this.playing) {
-          this.togglePlay()
+        if (this.playlist.length === 1) { // 如果只有一首歌就单曲循环播放
+          this.loop()
+        } else {
+          let index = this.currentIndex + 1
+          if (index === this.playlist.length) {
+            index = 0
+          }
+          this.setCurrentIndex(index)
+          // 如果点下一曲的时候，播放状态为暂停，则将歌曲置为播放状态
+          if (!this.playing) {
+            this.togglePlay()
+          }
         }
         this.songCanplay = false // 当播放一首歌开始时同时将songCanplay置为false，等歌曲播放时的canplay事件将songCanplay置为true
       },
@@ -242,14 +262,18 @@
         if (!this.songCanplay) {
           return
         }
-        let index = this.currentIndex - 1
-        if (index === -1) {
-          index = this.playlist.length - 1
-        }
-        this.setCurrentIndex(index)
-        // 如果点上一曲的时候，播放状态为暂停，则将歌曲置为播放状态
-        if (!this.playing) {
-          this.togglePlay()
+        if (this.playlist.length === 1) { // 如果只有一首歌就单曲循环播放
+          this.loop()
+        } else {
+          let index = this.currentIndex - 1
+          if (index === -1) {
+            index = this.playlist.length - 1
+          }
+          this.setCurrentIndex(index)
+          // 如果点上一曲的时候，播放状态为暂停，则将歌曲置为播放状态
+          if (!this.playing) {
+            this.togglePlay()
+          }
         }
         this.songCanplay = false // 当播放一首歌开始时同时将songCanplay置为false，等歌曲播放时的canplay事件将songCanplay置为true
       },
@@ -313,6 +337,9 @@
       loop() {
         this.$refs.audio.currentTiem = 0
         this.$refs.audio.play()
+        if (this.currentLyric) {
+          this.currentLyric.seek(0) // 单曲循环完成时又将歌词从头开始
+        }
       },
       /**
        * 将api获取到歌词转成需要的格式
@@ -324,6 +351,10 @@
           if (this.playing) {
             this.currentLyric.play()
           }
+        }).catch(() => { // 如果获取不到歌词，则进行清理操作
+          this.currentLyric = null
+          this.playingLyricTxt = ''
+          this.currentLyricLineNum = 0
         })
       },
       /**
@@ -337,6 +368,7 @@
         } else { // 如果小于5行，就在顶部
           this.$refs.lyricList.scrollToElement(0, 0, 1000)
         }
+        this.playingLyricTxt = txt
       },
       /**
        * timeUpdate得到的时候是时间戳，这里进行格式化处理
@@ -351,10 +383,15 @@
        * 根据progress-bar派发过来的percentChange事件来控制歌曲到指定位置播放
        */
       onProgressBarChange(percent) {
-        this.$refs.audio.currentTime = this.songDurationTime * percent
+        const currentTime = this.songDurationTime * percent
+        this.$refs.audio.currentTime = currentTime
         // 如果拖动后，播放状态为暂停，则将歌曲置为播放状态
         if (!this.playing) {
           this.togglePlay()
+        }
+        // 控制歌词跳转
+        if (this.currentLyric) {
+          this.currentLyric.seek(currentTime * 1000)
         }
       },
       /**
@@ -445,10 +482,42 @@
           return
         }
         const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
-        const width = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
-        this.$refs.lyricList.$el.style[transform] = `translate3d(${width}px,0,0)` // 因为lyricList是vue组件，这里只能是$el来获取
+        const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+        this.touch.percent = Math.abs(offsetWidth / window.innerWidth) // 滑动的比例
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)` // 因为lyricList是vue组件，这里只能是$el来获取
+        this.$refs.lyricList.$el.style[transitionDuration] = 0 // 将middleTouchEnd中设置的值重新设为0
+        this.$refs.middleL.style.opacity = 1 - this.touch.percent // 设置cd背景透明度
+        this.$refs.middleL.style[transitionDuration] = 0 // 将middleTouchEnd中设置的值重新设为0
       },
-      middleTouchEnd() {}
+      middleTouchEnd() {
+        /* eslint-disable */
+        let offsetWidth
+        let opacity
+        if (this.currentShow === 'cd') {
+          if (this.touch.percent > 0.1) {
+            offsetWidth = -window.innerWidth
+            opacity = 0
+            this.currentShow = 'lyric'
+          } else {
+            offsetWidth = 0
+            opacity = 1
+          }
+        } else {
+          if (this.touch.percent < 0.9) {
+            offsetWidth = 0
+            opacity = 1
+            this.currentShow = 'cd'
+          } else {
+            offsetWidth = -window.innerWidth
+            opacity = 0
+          }
+        }
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)` // 因为lyricList是vue组件，这里只能是$el来获取
+        let time = 300
+        this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
+        this.$refs.middleL.style.opacity = opacity // 设置cd背景透明度
+        this.$refs.middleL.style[transitionDuration] = `${time}ms` // 动画时间
+      }
       // ---------middleTouch结束
     },
     components: {
@@ -561,7 +630,7 @@
             margin: 30px auto 0 auto
             overflow: hidden
             text-align: center
-            .playing-lyric
+            .playing-lyric-txt
               height: 20px
               line-height: 20px
               font-size: $font-size-medium
