@@ -3,8 +3,9 @@ import Router from 'vue-router'
 import Recommend from '../components/recommend/recommend' // 推荐页面
 import Diss from '../components/diss/diss' // 歌单页面
 import Singer from 'components/singer/singer' // 歌手页面
-import SingerDetail from '../components/singer-detail/singer-detail' // 歌手详情页面
+import SingerDetail from '../components/singer-detail/singer-detail' // 歌手详情页面（二级）
 import Rank from 'components/rank/rank' // 排行页面
+import TopList from 'components/top-list/top-list' // 排行榜页面（二级）
 import Search from 'components/search/search' // 搜索页面
 
 Vue.use(Router)
@@ -42,7 +43,14 @@ export default new Router({
     {
       path: '/rank',
       name: 'Rank',
-      component: Rank
+      component: Rank,
+      children: [
+        {
+          path: ':id',
+          name: 'TopList',
+          component: TopList
+        }
+      ]
     },
     {
       path: '/search',

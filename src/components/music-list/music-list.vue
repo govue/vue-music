@@ -3,7 +3,7 @@
 * @author qubo
 * @copyright govue.cn
 * @createDate 2018-10-13 23:21:00
-* @desc 歌曲列表组件，该组件的调用需要传入三个值：title\bg-image\songs，songs在调用的组件中data里初始不songs:[]，不然会报错
+* @desc 歌曲列表组件，该组件的调用需要传入三个值：title\bg-image\songs，没有数据时可以绑定空数据：:songs="[]"，不然会报错,title\bg-image通过计算属性得到
 -->
 <template>
     <div class="music-list">
