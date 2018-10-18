@@ -51,3 +51,32 @@ export function getDissList() {
     return Promise.resolve(res.data)
   })
 }
+
+/**
+ * @method getSongList
+ * @returns {json} json歌单对应歌曲列表
+ * @desc 获取歌单对应的歌曲数据
+ */
+export function getSongList(dissid) {
+  const url = '/getDissSongList'
+  const data = Object.assign({}, commonParams, {
+    type: 1,
+    json: 1,
+    utf8: 1,
+    onlysong: 0,
+    disstid: dissid,
+    format: 'json',
+    // jsonpCallback: 'playlistinfoCallback',
+    loginUin: 0,
+    hostUin: 0,
+    notice: 0,
+    platform: 'yqq',
+    needNewCode: 0
+  })
+
+  return axios.get(url, {
+    params: data
+  }).then((res) => {
+    return Promise.resolve(res.data)
+  })
+}

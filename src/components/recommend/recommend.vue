@@ -7,7 +7,7 @@
 -->
 
 <template>
-    <div class="recommend">
+    <div class="recommend" ref="recommend">
       <scroll class="recommend-content" :data="dissList" ref="scroll">
         <div>
           <div class="slider-wrapper" v-if="sliders.length">
@@ -22,7 +22,11 @@
           <div class="recommend-list">
             <h1 class="list-title">热门歌单推荐</h1>
             <ul>
-              <li class="item" v-for="(item,index) in dissList" :key="index">
+              <li class="item"
+                  v-for="(item,index) in dissList"
+                  :key="index"
+                  @click="selectItem(item)"
+              >
                 <div class="icon">
                   <img width="60" height="60" v-lazy="item.imgurl" alt="">
                 </div>
@@ -38,6 +42,7 @@
       <div class="loading-wrapper" v-if="!dissList.length">
         <loading></loading>
       </div>
+      <router-view></router-view>
     </div>
 </template>
 
@@ -47,9 +52,12 @@
   import Slider from 'base/slider/slider'
   import Scroll from 'base/scroll/scroll'
   import Loading from 'base/loading/loading'
+  import {playlistMixin} from 'common/js/mixin' // 引入playlistMixin：解决当播放器从全屏缩小到mini模式时，底部dom高度不正确的bug
+  import {mapMutations} from 'vuex' // vuex提供的写数据的语法糖
 
   export default {
       name: 'recommend',
+      mixins: [playlistMixin],
       data() {
         return {
           sliders: [], // 幻灯片组
@@ -79,6 +87,15 @@
           })
         },
         /**
+         * 歌单项点击时
+         */
+        selectItem(item) {
+          this.$router.push({
+            path: `/recommend/${item.dissid}`
+          })
+          this.setDiss(item)
+        },
+        /**
          * @method loadImage
          * @returns {}
          * @desc 有图片加载时,这里解决slide数据加载慢时，Bscroll计算高度错误的bug
@@ -88,7 +105,23 @@
             this.$refs.scroll.refresh() // 如果样式中不指定高度，这里refresh()时会计算出错
             this.checkLoadedImage = true
           }
-        }
+        },
+        /**
+         * mixin方法实现当加载mini播放器的时候，scroll高度计算不准确的bug
+         */
+        handlePlaylist(playlist) {
+          const bottom = playlist.length > 0 ? '60px' : 0
+          this.$refs.recommend.style.bottom = bottom
+          this.$refs.scroll.refresh()
+        },
+        /**
+         * @computed mapMutations
+         * @returns {}
+         * @desc mapMutations将需要操作的数据做映射
+         */
+        ...mapMutations({
+          setDiss: 'SET_DISS'
+        })
       },
       components: {
         Slider,

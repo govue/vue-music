@@ -3,7 +3,7 @@
 * @author qubo
 * @copyright govue.cn
 * @createDate 2018-10-13 23:21:00
-* @desc 歌曲列表组件
+* @desc 歌曲列表组件，该组件的调用需要传入三个值：title\bg-image\songs，songs在调用的组件中data里初始不songs:[]，不然会报错
 -->
 <template>
     <div class="music-list">
@@ -49,6 +49,7 @@
   import {prefixStyle} from 'common/js/dom' // 引入浏览器能力检测，添加css相应前缀
   import Loading from 'base/loading/loading' // 异步加载动画
   import {mapActions} from 'vuex' // vuex提供的代理actions的语法糖
+  import {playlistMixin} from 'common/js/mixin' // 引入playlistMixin：解决当播放器从全屏缩小到mini模式时，底部dom高度不正确的bug
 
   const RESERVED_HEIGHT = 40 // bg-laye层向上滚动时预留的高度，即滚动不超过标题部分
 
@@ -57,6 +58,7 @@
 
   export default {
     name: 'music-list',
+    mixins: [playlistMixin],
     props: {
       bgImage: { // 列表上部的图片
         type: String,
@@ -116,6 +118,14 @@
         this.randomPlay({
           list: this.songs
         })
+      },
+      /**
+       * mixin方法实现当加载mini播放器的时候，scroll高度计算不准确的bug
+       */
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : 0
+        this.$refs.list.$el.style.bottom = bottom
+        this.$refs.list.refresh()
       },
       ...mapActions([
         'selectPlay', // 当点击歌曲时执行

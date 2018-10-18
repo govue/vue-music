@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Recommend from '../components/recommend/recommend' // 推荐页面
+import Diss from '../components/diss/diss' // 歌单页面
 import Singer from 'components/singer/singer' // 歌手页面
 import SingerDetail from '../components/singer-detail/singer-detail' // 歌手详情页面
 import Rank from 'components/rank/rank' // 排行页面
@@ -17,7 +18,14 @@ export default new Router({
     {
       path: '/recommend',
       name: 'Recommend',
-      component: Recommend
+      component: Recommend,
+      children: [
+        {
+          path: ':id',
+          name: 'Diss',
+          component: Diss
+        }
+      ]
     },
     {
       path: '/singer',

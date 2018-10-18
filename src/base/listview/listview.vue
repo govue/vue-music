@@ -173,6 +173,15 @@
             tempHeight += item.clientHeight
             this.listGroupHeight.push(tempHeight)
           }
+        },
+        /**
+         * scroll refresh方法，重新计算dom,singer组件里mixinPlaylist方法用
+         */
+        refresh() {
+          // 如果这里不延时执行，就会报refresh方法找不到
+          setTimeout(() => {
+            this.$refs.listview.refresh()
+          }, 100)
         }
       },
       watch: {

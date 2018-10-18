@@ -18,7 +18,7 @@
   import {mapGetters} from 'vuex' // vuex提供的读数据语法糖
   import {getSingerDetail} from 'api/singer' // 获取singerDetail数据
   import {ERR_OK} from 'api/config'
-  import {createSong} from '../../common/js/class/Song'
+  import {createSong} from '../../common/js/class/Song' // 引入创建歌曲的工厂方法
   import MusicList from 'components/music-list/music-list' // 歌曲列表组件
 
   export default {
@@ -50,7 +50,7 @@
        */
       _getSongList() {
         if (!this.singer.id) { // 如果在singerDetail页刷新时，是获取不到歌曲列表数据的，
-          this.$router.push('/singer') // 则返回到哥手列表
+          this.$router.push('/singer') // 则返回到歌手列表
           return
         }
         getSingerDetail(this.singer.id).then((res) => {

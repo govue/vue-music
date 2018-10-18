@@ -1,7 +1,8 @@
 <template>
-    <div class="singer">
+    <div class="singer" ref="singer">
       <list-view :data="singers"
                  @select="showSingerDetail"
+                 ref="singersList"
       ></list-view>
       <router-view></router-view>
     </div>
@@ -14,12 +15,14 @@
     import Singer from 'common/js/class/Singer' // Singer类，处理数据时用
     import ListView from 'base/listview/listview'
     import {mapMutations} from 'vuex' // vuex提供的写数据的语法糖
+    import {playlistMixin} from 'common/js/mixin' // 引入playlistMixin：解决当播放器从全屏缩小到mini模式时，底部dom高度不正确的bug
 
     const HOT_NAME = '热门'
     const HOT_SINGER_LENGTH = 10
 
     export default {
         name: 'singer',
+        mixins: [playlistMixin],
         data() {
           return {
             singers: []
@@ -98,6 +101,14 @@
               return a.title.charCodeAt(0) - b.title.charCodeAt(0)
             })
             return hotArr.concat(otherArr)
+          },
+          /**
+           * mixin方法实现当加载mini播放器的时候，scroll高度计算不准确的bug
+           */
+          handlePlaylist(playlist) {
+            const bottom = playlist.length > 0 ? '60px' : 0
+            this.$refs.singer.style.bottom = bottom
+            this.$refs.singersList.refresh()
           },
           /**
            * @computed mapMutations
