@@ -29,8 +29,18 @@
     },
     mixins: [],
     methods: {
+      /**
+       * 清空input搜索框内容
+       */
       clear() {
         this.query = ''
+      },
+      /**
+       * 设置查询的query
+       * @param query
+       */
+      setQuery(query) {
+        this.query = query
       }
     },
     created() {

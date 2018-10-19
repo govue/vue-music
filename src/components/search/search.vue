@@ -1,29 +1,83 @@
 <template>
     <div class="search">
       <div class="search-box-wrapper">
-        <search-box></search-box>
+        <search-box ref="searchBox" @query="onQueryChange"></search-box>
+      </div>
+      <div class="shortcut-wrapper" v-show="!query">
+        <div class="shortcut">
+          <div class="hot-key">
+            <h1 class="title">热门搜索</h1>
+            <ul>
+              <li class="item"
+                  v-for="(item,index) in hotKey"
+                  :key="index"
+                  @click="addQuery(item.k)"
+              >
+                <span>{{item.k}}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="search-result" v-show="query">
+        <suggest :query="query"></suggest>
       </div>
     </div>
 </template>
 
 <script type="text/ecmascript-6">
   import SearchBox from 'base/search-box/search-box'
+  import {getHotKey} from 'api/search'
+  import {ERR_OK} from 'api/config'
+  import Suggest from 'components/suggest/suggest'
 
   export default {
     name: 'search',
     props: {},
     data() {
-      return {}
+      return {
+        hotKey: [],
+        query: ''
+      }
     },
     computed: {},
     watch: {},
     components: {
-      SearchBox
+      SearchBox,
+      Suggest
     },
     mixins: [],
-    methods: {},
-    created() {},
-    mounted() {}
+    methods: {
+      /**
+       * 从api获取hotKey数据
+       */
+      getHotKey() {
+        getHotKey().then((res) => {
+          if (res.code === ERR_OK) {
+            this.hotKey = res.data.hotkey.slice(0, 10)
+          }
+        })
+      },
+      /**
+       * 点击hotKey标签时
+       * @param query
+       */
+      addQuery(query) {
+        this.$refs.searchBox.setQuery(query)
+      },
+      /**
+       * 当搜索组件search-box中的query值有变化时，从子组件派发query事件，这里监听到执行，并将变化后的query值传给suggest组件中去查询，结果显示在suggest组件中
+       * @param query
+       */
+      onQueryChange(query) {
+        this.query = query
+      }
+    },
+    created() {
+      this.getHotKey()
+    },
+    mounted() {
+    }
   }
 
 </script>

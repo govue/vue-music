@@ -64,7 +64,7 @@ export function createSong (musicData) {
  * @returns {}
  * @desc 因为Song里面的singer有可能是多个，是用‘/’连接的
  */
-function filterSinger(singer) {
+export function filterSinger(singer) {
   let ret = []
   if (!singer) {
     return ''
