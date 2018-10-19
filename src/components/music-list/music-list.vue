@@ -33,6 +33,7 @@
               ref="list">
         <div class="song-list-wrapper">
           <song-list :songs="songs"
+                     :rank="rank"
                      @select="selectItem"
           ></song-list>
           <div class="loading-container" v-show="!songs.length">
@@ -71,6 +72,10 @@
       title: { // 顶部标题
         type: String,
         default: ''
+      },
+      rank: { // 是否显示排行榜song列表
+        type: Boolean,
+        default: false
       }
     },
     data() {

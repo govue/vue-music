@@ -52,8 +52,8 @@ export function createSong (musicData) {
     mid: musicData.songmid,
     singer: filterSinger(musicData.singer),
     name: musicData.songname,
-    album: musicData.albumname,
-    duration: musicData.interval,
+    album: musicData.albumname, // 专辑
+    duration: musicData.interval, // 时长
     image: `//y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`,
     url: `http://dl.stream.qqmusic.qq.com/C100${musicData.songmid}.m4a?vkey=91A134958047EC04A21B8BFB7E9107BACB69E05A534FE40D340F735D128ADD558310154230F4BC6CE6710F441F0CB82636782DE73A72ABD4&fromtag=66`
   })

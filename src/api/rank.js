@@ -30,3 +30,28 @@ export function getTopList() {
   // }
   return jsonp(url, data, options)
 }
+
+/**
+ * @method getTopList
+ * @returns {json} jsonp排行榜对应的歌曲列表
+ * @desc 获取排行榜对应的歌曲列表数据
+ */
+export function getMusicList(topid) {
+  const url = 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg'
+  const data = Object.assign({}, commonParams, {
+    uin: 0,
+    format: 'json',
+    platform: 'h5',
+    needNewCode: 1,
+    tpl: 3,
+    page: 'detail',
+    type: 'top',
+    topid: topid
+  })
+  // const options = {
+  //   param: 'callback',
+  //   prefix: '',
+  //   name: 'getUCGI7515964745815737'
+  // }
+  return jsonp(url, data, options)
+}
