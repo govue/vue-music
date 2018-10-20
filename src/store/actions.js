@@ -31,6 +31,49 @@ export const randomPlay = function({commit}, {list}) {
   commit(types.SET_PLAYING_STATE, true) // 设置播放中
 }
 
+// 插入一首歌到播放列表（搜索时）
+export const insertSong = function ({commit, state}, song) {
+  let playlist = state.playlist.slice() // 数组是引用类型，slice是返回playlist的副本，不然就直接修改了vuex变量，会报警告
+  let sequenceList = state.sequenceList.slice()
+  let currentIndex = state.currentIndex // currentIndex是值类型，不需要创建副本
+  // 记录当前歌曲
+  let currentSong = playlist[currentIndex]
+  // 查找当前列表中是否有待插入的歌曲并返回其索引
+  let fpIndex = findIndex(playlist, song)
+  // 因为是插入歌曲，所以索引+1
+  currentIndex++
+  playlist.splice(currentIndex, 0, song)
+
+  // 如果已经包含了这首歌，判断位置再删除
+  if (fpIndex > -1) {
+    if (currentIndex > fpIndex) { // 如果查找到的歌曲在当前播放列表前面，则删除后当前播放歌曲索引再向前移一位
+      playlist.splice(fpIndex, 1)
+      currentIndex--
+    } else { // 如果查找到的歌曲在当前播放列表后面，则直接删除
+      playlist.splice(fpIndex + 1, 1)
+    }
+  }
+
+  // 查找sequence列表，先添加到列表，再判断是否重复，如果有则计算位置并删除
+  let currentSindex = findIndex(sequenceList, currentSong) + 1
+  let fsIndex = findIndex(sequenceList, song)
+  sequenceList.splice(currentSindex, 0, song) // 添加
+  if (fsIndex > -1) {
+    if (currentSindex > fsIndex) {
+      sequenceList.splice(fsIndex, 1)
+    } else {
+      sequenceList.splice(fsIndex + 1, 1)
+    }
+  }
+
+  // 修改vuex中的数据
+  commit(types.SET_PLAYLIST, playlist)
+  commit(types.SET_SEQUENCE_LIST, sequenceList)
+  commit(types.SET_CURRENT_INDEX, currentIndex)
+  commit(types.SET_FULL_SCREEN, true)
+  commit(types.SET_PLAYING_STATE, true)
+}
+
 // 在数组中查找对应item并返回index
 function findIndex(list, song) {
   return list.findIndex((item) => {

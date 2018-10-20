@@ -14,7 +14,7 @@
             type: Number,
             default: 1
           },
-          click: {
+          click: { // 是否允许点击，属性里面用
             type: Boolean,
             default: true
           },
@@ -22,7 +22,15 @@
             type: Boolean,
             default: false
           },
-          data: {
+          pullUp: { // 是否上拉加载数据，默认不开启
+            type: Boolean,
+            default: false
+          },
+          beforeScroll: { // 是否在滚动前派发一个beforeScroll事件
+            type: Boolean,
+            default: false
+          },
+          data: { // 传入的业务数据
             type: Array,
             default: null
           }
@@ -61,6 +69,22 @@
               let _this = this
               this.scroll.on('scroll', (pos) => {
                 _this.$emit('scroll', pos)
+              })
+            }
+
+            // 如果需要上拉加载数据，则当scroll快到底部的时候派发一个scrollToEnd数据给父组件，再通过父组件来动态加载数据
+            if (this.pullUp) {
+              this.scroll.on('scrollEnd', () => {
+                if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+                  this.$emit('scrollToEnd')
+                }
+              })
+            }
+
+            // 如果需要在scroll滚动前派发事件，则向父组件派发beforeScroll事件
+            if (this.beforeScroll) {
+              this.scroll.on('beforeScrollStart', () => {
+                this.$emit('beforeScroll')
               })
             }
           },

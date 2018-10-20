@@ -4,12 +4,15 @@
     <input type="text" class="box"
            :placeholder="placeholder"
            v-model="query"
+           ref="queryInput"
     >
     <i class="icon-dismiss" v-show="query" @click="clear"></i>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  import {debounce} from '../../common/js/util'
+
   export default {
     name: 'search-box',
     props: {
@@ -41,12 +44,18 @@
        */
       setQuery(query) {
         this.query = query
+      },
+      /**
+       * 收起输入法（移动端），根据派发的beforeScroll事件来执行
+       */
+      blur() {
+        this.$refs.queryInput.blur()
       }
     },
     created() {
-      this.$watch('query', (newQuery) => {
+      this.$watch('query', debounce((newQuery) => {
         this.$emit('query', newQuery)
-      })
+      }, 500))
     },
     mounted() {}
   }
