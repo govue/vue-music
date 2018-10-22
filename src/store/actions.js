@@ -3,6 +3,7 @@
 import * as types from './mutation-types'
 import {playMode} from 'common/js/config' // 引入播放模式常量
 import {shuffle} from 'common/js/util' // 引入将数组随机打乱的函数
+import {saveSearch} from 'common/js/cache' // 引入写本地存储storage方法
 
 // 当点击歌曲播放的时候
 export const selectPlay = function ({commit, state}, {list, index}) {
@@ -72,6 +73,11 @@ export const insertSong = function ({commit, state}, song) {
   commit(types.SET_CURRENT_INDEX, currentIndex)
   commit(types.SET_FULL_SCREEN, true)
   commit(types.SET_PLAYING_STATE, true)
+}
+
+// 将搜索的记录写入vuex变量和写入本地缓存
+export const saveSearchHistory = function({commit}, query) {
+  commit(types.SET_SEARCH_HISTORY, saveSearch(query))
 }
 
 // 在数组中查找对应item并返回index

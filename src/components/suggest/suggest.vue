@@ -155,6 +155,7 @@
         } else { // 如果是歌曲
           this.insertSong(item)
         }
+        this.$emit('select') // 派发select事件，用来记录搜索历史，所以逻辑不在这里写，派发事件到父组件去处理
       },
       /**
        * 当监听到beforeScroll事件时，派发listScroll事件
