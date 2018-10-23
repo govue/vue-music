@@ -17,24 +17,43 @@
               </li>
             </ul>
           </div>
+          <div class="search-history" v-show="searchHistory.length">
+            <h1 class="title">
+              <span class="text">搜索历史</span>
+              <span class="clear" @click="showConfirm">
+                <i class="icon-clear"></i>
+              </span>
+            </h1>
+            <search-list :searches="searchHistory"
+                         @select="addQuery"
+                         @delete="deleteSearchHistory"
+            ></search-list>
+          </div>
         </div>
       </div>
       <div class="search-result" v-show="query">
         <suggest :query="query"
                  @listScroll="blurInput"
-                 @select="saveSearch"
+                 @select="saveSearchHistory(query)"
         ></suggest>
       </div>
+      <confirm ref="confirm"
+               text="是否清空搜索历史"
+               confirmBtnText="清空"
+               @confirm="clearSearchHistory()"
+      ></confirm>
       <router-view></router-view>
     </div>
 </template>
 
 <script type="text/ecmascript-6">
-  import SearchBox from 'base/search-box/search-box'
-  import {getHotKey} from 'api/search'
+  import SearchBox from 'base/search-box/search-box' // 搜索框
+  import {getHotKey} from 'api/search' // 获取 搜索热点数据
   import {ERR_OK} from 'api/config'
-  import Suggest from 'components/suggest/suggest'
-  import {mapActions} from 'vuex'
+  import Suggest from 'components/suggest/suggest' // 提示，即搜索时从api获取提示的搜索列表
+  import SearchList from 'base/search-list/search-list' // 搜索历史列表
+  import Confirm from 'base/confirm/confirm' // 弹窗
+  import {mapActions, mapGetters} from 'vuex'
 
   export default {
     name: 'search',
@@ -42,14 +61,20 @@
     data() {
       return {
         hotKey: [],
-        query: ''
+        query: '' // 搜索的字符串
       }
     },
-    computed: {},
+    computed: {
+      ...mapGetters([
+        'searchHistory'
+      ])
+    },
     watch: {},
     components: {
       SearchBox,
-      Suggest
+      Suggest,
+      SearchList,
+      Confirm
     },
     mixins: [],
     methods: {
@@ -71,6 +96,15 @@
         this.$refs.searchBox.setQuery(query)
       },
       /**
+       * 删除搜索历史(一条)
+       */
+      deleteQuery(query) {
+        this.deleteSearchHistory(query)
+      },
+      deleteAll() {
+        this.clearSearchHistory()
+      },
+      /**
        * 当搜索组件search-box中的query值有变化时，从子组件派发query事件，这里监听到执行，并将变化后的query值传给suggest组件中去查询，结果显示在suggest组件中
        * @param query
        */
@@ -83,6 +117,9 @@
       blurInput() {
         this.$refs.searchBox.blur()
       },
+      showConfirm() {
+        this.$refs.confirm.show()
+      },
       /**
        * 监听select事件，保存搜索历史
        */
@@ -90,7 +127,9 @@
         this.saveSearchHistory(this.query)
       },
       ...mapActions([
-        'saveSearchHistory'
+        'saveSearchHistory',
+        'deleteSearchHistory',
+        'clearSearchHistory'
       ])
     },
     created() {

@@ -11,6 +11,11 @@ import storage from 'good-storage'
 const SEARCH_KEY = '__search__'
 const SEARCH_MAX_LENGTH = 15
 
+/**
+ * 保存搜索历史记录(一条)，在vuex中的actions.js文件引用
+ * @param query
+ * @returns {*}
+ */
 export function saveSearch(query) {
   let searchHistories = storage.get(SEARCH_KEY, []) // 获取storage中的搜索历史，没有就返回空数组
   insertArray(searchHistories, query, (item) => {
@@ -21,7 +26,31 @@ export function saveSearch(query) {
 }
 
 /**
- * 数组插入函数
+ * 删除搜索历史记录（一条），在vuex中的actions.js文件引用
+ * @param query
+ * @returns {*}
+ */
+export function deleteSearch(query) {
+  let searchHistories = storage.get(SEARCH_KEY, []) // 获取storage中的搜索历史，没有就返回空数组
+  deleteFromArray(searchHistories, (item) => {
+    return item === query
+  })
+  storage.set(SEARCH_KEY, searchHistories)
+  return searchHistories
+}
+
+/**
+ * 清空搜索历史记录（全部），在vuex中的actions.js文件引用
+ * @param query
+ * @returns {Array}
+ */
+export function clearSearch(query) {
+  storage.remove(SEARCH_KEY)
+  return []
+}
+
+/**
+ * 向数组中插入元素函数
  * @param arr
  * @param val
  * @param compare 比较函数，外部传入
@@ -40,6 +69,18 @@ function insertArray(arr, val, compare, maxLen) {
     arr.pop() // 从数组未尾删除一条数据
   }
   return arr
+}
+
+/**
+ * 数组中的元素删除函数
+ * @param arr
+ * @param compare
+ */
+function deleteFromArray(arr, compare) {
+  const index = arr.findIndex(compare)
+  if (index > -1) {
+    arr.splice(index, 1)
+  }
 }
 
 // 读取storage存储中的对应的值
