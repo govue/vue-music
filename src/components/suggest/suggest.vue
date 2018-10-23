@@ -181,6 +181,12 @@
           return `${item.name} - ${item.singer}`
         }
       },
+      /**
+       * refresh方法代理，这里给search组件的mixin刷新时用
+       */
+      refresh() {
+        this.$refs.suggest.refresh()
+      },
       ...mapMutations({
         'setSinger': 'SET_SINGER'
       }),

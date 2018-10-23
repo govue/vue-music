@@ -3,21 +3,25 @@
       <div class="search-box-wrapper">
         <search-box ref="searchBox" @query="onQueryChange"></search-box>
       </div>
-      <div class="shortcut-wrapper" v-show="!query">
-        <div class="shortcut">
-          <div class="hot-key">
-            <h1 class="title">热门搜索</h1>
-            <ul>
-              <li class="item"
-                  v-for="(item,index) in hotKey"
-                  :key="index"
-                  @click="addQuery(item.k)"
-              >
-                <span>{{item.k}}</span>
-              </li>
-            </ul>
-          </div>
-          <div class="search-history" v-show="searchHistory.length">
+      <div class="shortcut-wrapper"
+           v-show="!query"
+           ref="shortcutWrapper"
+      >
+        <Scroll class="shortcut" :data="shortcut" ref="shortcut">
+          <div>
+            <div class="hot-key">
+              <h1 class="title">热门搜索</h1>
+              <ul>
+                <li class="item"
+                    v-for="(item,index) in hotKey"
+                    :key="index"
+                    @click="addQuery(item.k)"
+                >
+                  <span>{{item.k}}</span>
+                </li>
+              </ul>
+            </div>
+            <div class="search-history" v-show="searchHistory.length">
             <h1 class="title">
               <span class="text">搜索历史</span>
               <span class="clear" @click="showConfirm">
@@ -29,12 +33,17 @@
                          @delete="deleteSearchHistory"
             ></search-list>
           </div>
-        </div>
+          </div>
+        </Scroll>
       </div>
-      <div class="search-result" v-show="query">
+      <div class="search-result"
+           v-show="query"
+           ref="searchResult"
+      >
         <suggest :query="query"
                  @listScroll="blurInput"
                  @select="saveSearchHistory(query)"
+                 ref="suggest"
         ></suggest>
       </div>
       <confirm ref="confirm"
@@ -53,6 +62,8 @@
   import Suggest from 'components/suggest/suggest' // 提示，即搜索时从api获取提示的搜索列表
   import SearchList from 'base/search-list/search-list' // 搜索历史列表
   import Confirm from 'base/confirm/confirm' // 弹窗
+  import Scroll from 'base/scroll/scroll' // Scroll滚动组件
+  import {playlistMixin} from 'common/js/mixin'
   import {mapActions, mapGetters} from 'vuex'
 
   export default {
@@ -65,18 +76,36 @@
       }
     },
     computed: {
+      /**
+       * 传给Scroll组件计算整个dom列表（热门搜索和搜索历史）的高度
+       */
+      shortcut() {
+        return this.hotKey.concat(this.searchHistory)
+      },
       ...mapGetters([
         'searchHistory'
       ])
     },
-    watch: {},
+    watch: {
+      /**
+       * 解决：在搜索页输入搜索内容搜索后，再切换到搜索页，因为搜索页dom切换造成切换后无法重新计算，scroll获取不到高度无法重新滚动
+       */
+      query(newQuery) {
+        if (!newQuery) { // 如果检测到从有内容到无内容的变化时
+          setTimeout(() => {
+            this.$refs.shortcut.refresh()
+          }, 20)
+        }
+      }
+    },
     components: {
       SearchBox,
       Suggest,
       SearchList,
-      Confirm
+      Confirm,
+      Scroll
     },
-    mixins: [],
+    mixins: [playlistMixin],
     methods: {
       /**
        * 从api获取hotKey数据
@@ -125,6 +154,15 @@
        */
       saveSearch() {
         this.saveSearchHistory(this.query)
+      },
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+
+        this.$refs.shortcutWrapper.style.bottom = bottom
+        this.$refs.shortcut.refresh()
+
+        this.$refs.searchResult.style.bottom = bottom
+        this.$refs.suggest.refresh()
       },
       ...mapActions([
         'saveSearchHistory',
