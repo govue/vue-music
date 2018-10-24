@@ -75,6 +75,33 @@ export const insertSong = function ({commit, state}, song) {
   commit(types.SET_PLAYING_STATE, true)
 }
 
+// 从playlist删除一首歌
+export const deleteSong = function ({commit, state}, song) {
+  let playlist = state.playlist.slice() // 数组是引用类型，slice是返回playlist的副本，不然就直接修改了vuex变量，会报警告
+  let sequenceList = state.sequenceList.slice()
+  let currentIndex = state.currentIndex // currentIndex是值类型，不需要创建副本
+  let pIndex = findIndex(playlist, song)
+  playlist.splice(pIndex, 1) // 从当前播放列表中删除
+  let sIndex = findIndex(sequenceList, song)
+  sequenceList.splice(sIndex, 1) // 从sequenceList列表中删除
+
+  // 如果删除的歌在当前播放歌的前面，或是当前播放的歌是最后一首
+  if (currentIndex > pIndex || currentIndex === playlist.length) {
+    currentIndex--
+  }
+
+  commit(types.SET_PLAYLIST, playlist)
+  commit(types.SET_SEQUENCE_LIST, sequenceList)
+  commit(types.SET_CURRENT_INDEX, currentIndex)
+
+  // 如果playlist中的歌全部删完了
+  if (!playlist.length) {
+    commit(types.SET_PLAYING_STATE, false) // 将播放器隐藏
+  } else {
+    commit(types.SET_PLAYING_STATE, true) // 如果暂停时删除playlist中的歌，这时播放状态还是暂停，但歌却在播放，这里调用setPlayingState解决这个问题
+  }
+}
+
 // 将搜索的记录写入vuex变量和写入本地缓存
 export const saveSearchHistory = function({commit}, query) {
   commit(types.SET_SEARCH_HISTORY, saveSearch(query))

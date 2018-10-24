@@ -101,11 +101,12 @@
             <i class="icon-mini" :class="miniIcon"></i>
           </progress-circle>
         </div>
-        <div class="control">
+        <div class="control" @click.stop="showPlaylist">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <playlist ref="playlist"></playlist>
     <audio :src="currentSong.url"
            ref="audio"
            @canplay="canplay"
@@ -126,6 +127,7 @@
   import {shuffle} from 'common/js/util' // 引入数组随机打乱函数
   import Lyric from 'lyric-parser' // 引入歌词处理类
   import Scroll from 'base/scroll/scroll' // 自定义的scroll组件
+  import Playlist from 'components/playlist/playlist' // 播放列表
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -184,6 +186,10 @@
     watch: {
       // watch到currentSong有值变化时就播放
       currentSong(newSong, oldSong) {
+        // 如果当前没有歌的时候（比如删除时把歌全部删完了）
+        if (!newSong.id) {
+          return
+        }
         // 当切换到随机模式时，歌曲打乱，但在打乱后的数组中重新找到当前正在播放的歌曲，并重新设置了currentIndex，这时会watch到变化，如果此时是暂停状态，则会触发播放，而播放的歌是另外的歌，这里解决这个bug,即随机前后只要当前播放的歌是同一首（currentSong.id不变）则其它逻辑也不执行
         if (newSong.id === oldSong.id) {
           return
@@ -395,6 +401,18 @@
         }
       },
       /**
+       * 显示播放列表
+       */
+      showPlaylist() {
+        this.$refs.playlist.show()
+      },
+      /**
+       * 显示播放列表
+       */
+      hidePlaylist() {
+        this.$refs.playlist.hide()
+      },
+      /**
        * mapMutations将需要操作的数据做映射，即将mutations里的操作映射成用户当前组件自定义的方法
        */
       ...mapMutations({
@@ -523,7 +541,8 @@
     components: {
       ProgressBar,
       ProgressCircle,
-      Scroll
+      Scroll,
+      Playlist
     }
   }
 </script>
