@@ -7,7 +7,10 @@
            v-show="!query"
            ref="shortcutWrapper"
       >
-        <Scroll class="shortcut" :data="shortcut" ref="shortcut">
+        <Scroll class="shortcut"
+                :data="shortcut"
+                :refreshDelay="refreshDelay"
+                ref="shortcut">
           <div>
             <div class="hot-key">
               <h1 class="title">热门搜索</h1>

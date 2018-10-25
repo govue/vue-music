@@ -18,6 +18,33 @@
               :currentIndex="currentIndex"
               @switch="switchTab"
         ></tabs>
+        <div class="list-wrapper">
+          <scroll class="list-scroll"
+                  v-if="currentIndex===0"
+                  :data="playHistory"
+                  :refreshDelay="refreshDelay"
+                  ref="playHistoryScroll"
+          >
+            <div class="list-inner">
+              <song-list :songs="playHistory"
+                         @select="selectSong"
+              ></song-list>
+            </div>
+          </scroll>
+          <scroll class="list-scroll"
+                  v-if="currentIndex===1"
+                  :data="searchHistory"
+                  :refreshDelay="refreshDelay"
+                  ref="searchHistoryScroll"
+          >
+            <div class="list-inner">
+              <search-list :searches="searchHistory"
+                           @delete="deleteSearchHistory"
+                           @select="addQuery"
+              ></search-list>
+            </div>
+          </scroll>
+        </div>
       </div>
       <div class="search-result" v-show="query">
         <suggest :query="query"
@@ -26,6 +53,12 @@
                  @listScroll="blurInput"
         ></suggest>
       </div>
+      <top-tip ref="topTip">
+        <div class="tip-title">
+          <i class="icon-ok"></i>
+          <span class="text">1首歌曲已经添加到播放列表</span>
+        </div>
+      </top-tip>
     </div>
   </transition>
 </template>
@@ -34,7 +67,13 @@
   import SearchBox from 'base/search-box/search-box'
   import Suggest from 'components/suggest/suggest'
   import Tabs from 'base/tabs/tabs'
+  import Scroll from 'base/scroll/scroll'
   import {searchMixin} from 'common/js/mixin'
+  import SongList from 'base/song-list/song-list'
+  import Song from 'common/js/class/Song'
+  import SearchList from 'base/search-list/search-list'
+  import TopTip from 'base/top-tip/top-tip'
+  import {mapGetters, mapActions} from 'vuex'
 
   export default {
     name: 'add-song',
@@ -51,12 +90,20 @@
         currentIndex: 0
       }
     },
-    computed: {},
+    computed: {
+      ...mapGetters([
+        'playHistory'
+      ])
+    },
     watch: {},
     components: {
       SearchBox,
       Suggest,
-      Tabs
+      Tabs,
+      Scroll,
+      SongList,
+      SearchList,
+      TopTip
     },
     mixins: [
       searchMixin
@@ -64,6 +111,14 @@
     methods: {
       show() {
         this.showFlag = true
+        // 解决playHistory和searchHistory不能滚动
+        setTimeout(() => {
+          if (this.currentIndex === 0) {
+            this.$refs.playHistoryScroll.refresh()
+          } else {
+            this.$refs.searchHistoryScroll.refresh()
+          }
+        }, 20)
       },
       hide() {
         this.showFlag = false
@@ -80,13 +135,26 @@
        */
       selectSuggest() {
         this.saveSearch()
+        this.$refs.topTip.show() // 顶部提示框
+      },
+      /**
+       * 在播放历史列表上点击时
+       */
+      selectSong(song, index) {
+        if (index !== 0) {
+          this.insertSong(new Song(song))
+          this.$refs.topTip.show() // 顶部提示框
+        }
       },
       /**
        * tab标签切换
        */
       switchTab(index) {
         this.currentIndex = index
-      }
+      },
+      ...mapActions([
+        'insertSong'
+      ])
     },
     created() {
     },

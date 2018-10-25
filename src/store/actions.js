@@ -3,7 +3,7 @@
 import * as types from './mutation-types'
 import {playMode} from 'common/js/config' // 引入播放模式常量
 import {shuffle} from 'common/js/util' // 引入将数组随机打乱的函数
-import {saveSearch, deleteSearch, clearSearch} from 'common/js/cache' // 引入写本地存储storage方法
+import {saveSearch, deleteSearch, clearSearch, savePlay} from 'common/js/cache' // 引入写本地存储storage方法
 
 // 当点击歌曲播放的时候
 export const selectPlay = function ({commit, state}, {list, index}) {
@@ -126,6 +126,11 @@ export const deleteSearchHistory = function ({commit}, query) {
 // 清空全部历史记录
 export const clearSearchHistory = function ({commit}) {
   commit(types.SET_SEARCH_HISTORY, clearSearch())
+}
+
+// 将当前播放的歌写入playHistory
+export const savePlayHistory = function ({commit}, song) {
+  commit(types.SET_PLAY_HISTORY, savePlay(song))
 }
 
 // 在数组中查找对应item并返回index

@@ -8,8 +8,11 @@
 
 import storage from 'good-storage'
 
-const SEARCH_KEY = '__search__'
+const SEARCH_KEY = '__search__' // 搜索历史
 const SEARCH_MAX_LENGTH = 15
+
+const PLAY_KEY = '__PLAY__' // 播放历史
+const PLAY_MAX_LENGTH = 200
 
 /**
  * 保存搜索历史记录(一条)，在vuex中的actions.js文件引用
@@ -86,4 +89,19 @@ function deleteFromArray(arr, compare) {
 // 读取storage存储中的对应的值
 export function loadSearch() {
   return storage.get(SEARCH_KEY, [])
+}
+
+// 将当前播放的歌写入播放历史
+export function savePlay(song) {
+  let songs = storage.get(PLAY_KEY, [])
+  insertArray(songs, song, (item) => {
+    return item.id === song.id
+  }, PLAY_MAX_LENGTH)
+  storage.set(PLAY_KEY, songs)
+  return songs
+}
+
+// 获取播放历史
+export function loadPlay() {
+  return storage.get(PLAY_KEY, [])
 }

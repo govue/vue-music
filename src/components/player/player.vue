@@ -118,7 +118,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import {mapGetters, mapMutations} from 'vuex' // vues提供的读数据、写数据语法糖
+  import {mapGetters, mapMutations, mapActions} from 'vuex' // vues提供的读数据、写数据语法糖
   import Animations from 'create-keyframe-animation' // 引入第三方动画组件库
   import {prefixStyle} from 'common/js/dom' // 引入浏览器能力检测，添加css相应前缀
   import ProgressBar from 'base/progress-bar/progress-bar' // 引入normal播放器底部进度条
@@ -179,6 +179,7 @@
         // 'sequenceList', // 播放器播放的原始歌曲列表，列表用来做随机等给playlist用
         // 'playlist', // 播放器需要播放的歌曲列表
         'currentIndex', // 当前播放歌曲的index
+        'currentSong',
         // 'currentSong', // 当前播放的歌曲
         'playing' // 播放状态
         // 'mode' // 播放状态
@@ -316,6 +317,7 @@
        */
       canplay() {
         this.songCanplay = true
+        this.savePlayHistory(this.currentSong) // 写入播放历史记录
       },
       /**
        * audio派发过来的error事件执行方法，这里解决当songCanplay在false时，网络或其它原因造成audio报错而无法将songCangplay置为true，这里next\prev按键就失效的问题
@@ -426,6 +428,9 @@
         // setPlayMode: 'SET_PLAY_MODE',
         // setPlaylist: 'SET_PLAYLIST'
       }),
+      ...mapActions([
+        'savePlayHistory'
+      ]),
       // ---------动画开始：下面为fullScreen展开时的动画，从miniPlayer左下角的小图片飞出放大到展开的“光盘”处
       enter(el, done) { // done为下一个执行的函数
         const {x, y, scale} = this._getPosAndScale()

@@ -30,6 +30,10 @@
             type: Boolean,
             default: false
           },
+          refreshDelay: { // refresh刷新时间
+            type: Number,
+            default: 20
+          },
           data: { // 传入的业务数据
             type: Array,
             default: null
@@ -44,7 +48,7 @@
           data() {
             setTimeout(() => {
               this.refresh() // 如果data数据有变化则重新刷新dom,因为数据是异步的，初始化bscroll的时候数据还未获取到，通过监听传入的相应数据来刷新dom获取新的高度
-            }, 20)
+            }, this.refreshDelay)
           }
         },
         methods: {

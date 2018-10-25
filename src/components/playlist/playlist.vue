@@ -14,6 +14,7 @@
         </div>
         <scroll class="list-content"
                 :data="sequenceList"
+                :refreshDelay="refreshDelay"
                 ref="listContent"
         >
           <transition-group name="list" tag="ul">
@@ -66,7 +67,8 @@
     name: 'playlist',
     data() {
       return {
-        showFlag: false
+        showFlag: false,
+        refreshDelay: 100
       }
     },
     props: {},
