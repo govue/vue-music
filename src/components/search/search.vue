@@ -42,7 +42,7 @@
       >
         <suggest :query="query"
                  @listScroll="blurInput"
-                 @select="saveSearchHistory(query)"
+                 @select="saveSearch(query)"
                  ref="suggest"
         ></suggest>
       </div>
@@ -63,16 +63,16 @@
   import SearchList from 'base/search-list/search-list' // 搜索历史列表
   import Confirm from 'base/confirm/confirm' // 弹窗
   import Scroll from 'base/scroll/scroll' // Scroll滚动组件
-  import {playlistMixin} from 'common/js/mixin'
-  import {mapActions, mapGetters} from 'vuex'
+  import {playlistMixin, searchMixin} from 'common/js/mixin'
+  import {mapActions} from 'vuex'
 
   export default {
     name: 'search',
     props: {},
     data() {
       return {
-        hotKey: [],
-        query: '' // 搜索的字符串
+        hotKey: []
+        // query: '' // 搜索的字符串
       }
     },
     computed: {
@@ -81,10 +81,10 @@
        */
       shortcut() {
         return this.hotKey.concat(this.searchHistory)
-      },
-      ...mapGetters([
-        'searchHistory'
-      ])
+      }
+      // ...mapGetters([
+      //   'searchHistory'
+      // ])
     },
     watch: {
       /**
@@ -105,7 +105,10 @@
       Confirm,
       Scroll
     },
-    mixins: [playlistMixin],
+    mixins: [
+      playlistMixin,
+      searchMixin
+    ],
     methods: {
       /**
        * 从api获取hotKey数据
@@ -117,13 +120,13 @@
           }
         })
       },
-      /**
-       * 点击hotKey标签时
-       * @param query
-       */
-      addQuery(query) {
-        this.$refs.searchBox.setQuery(query)
-      },
+      // /**
+      //  * 点击hotKey标签时
+      //  * @param query
+      //  */
+      // addQuery(query) {
+      //   this.$refs.searchBox.setQuery(query)
+      // },
       /**
        * 删除搜索历史(一条)
        */
@@ -133,28 +136,28 @@
       deleteAll() {
         this.clearSearchHistory()
       },
-      /**
-       * 当搜索组件search-box中的query值有变化时，从子组件派发query事件，这里监听到执行，并将变化后的query值传给suggest组件中去查询，结果显示在suggest组件中
-       * @param query
-       */
-      onQueryChange(query) {
-        this.query = query
-      },
-      /**
-       * 监听到有scroll滚动事件，则收起输入法键盘（移动端）
-       */
-      blurInput() {
-        this.$refs.searchBox.blur()
-      },
+      // /**
+      //  * 当搜索组件search-box中的query值有变化时，从子组件派发query事件，这里监听到执行，并将变化后的query值传给suggest组件中去查询，结果显示在suggest组件中
+      //  * @param query
+      //  */
+      // onQueryChange(query) {
+      //   this.query = query
+      // },
+      // /**
+      //  * 监听到有scroll滚动事件，则收起输入法键盘（移动端）
+      //  */
+      // blurInput() {
+      //   this.$refs.searchBox.blur()
+      // },
       showConfirm() {
         this.$refs.confirm.show()
       },
-      /**
-       * 监听select事件，保存搜索历史
-       */
-      saveSearch() {
-        this.saveSearchHistory(this.query)
-      },
+      // /**
+      //  * 监听select事件，保存搜索历史
+      //  */
+      // saveSearch() {
+      //   this.saveSearchHistory(this.query)
+      // },
       handlePlaylist(playlist) {
         const bottom = playlist.length > 0 ? '60px' : ''
 
@@ -165,8 +168,8 @@
         this.$refs.suggest.refresh()
       },
       ...mapActions([
-        'saveSearchHistory',
-        'deleteSearchHistory',
+        // 'saveSearchHistory',
+        // 'deleteSearchHistory',
         'clearSearchHistory'
       ])
     },

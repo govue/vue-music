@@ -95,11 +95,22 @@ export const deleteSong = function ({commit, state}, song) {
   commit(types.SET_CURRENT_INDEX, currentIndex)
 
   // 如果playlist中的歌全部删完了
-  if (!playlist.length) {
-    commit(types.SET_PLAYING_STATE, false) // 将播放器隐藏
-  } else {
-    commit(types.SET_PLAYING_STATE, true) // 如果暂停时删除playlist中的歌，这时播放状态还是暂停，但歌却在播放，这里调用setPlayingState解决这个问题
-  }
+  // if (!playlist.length) {
+  //   commit(types.SET_PLAYING_STATE, false) // 将播放器隐藏
+  // } else {
+  //   commit(types.SET_PLAYING_STATE, true) // 如果暂停时删除playlist中的歌，这时播放状态还是暂停，但歌却在播放，这里调用setPlayingState解决这个问题
+  // }
+  // 优化上面注释代码
+  const playingState = playlist.length > 0
+  commit(types.SET_PLAYING_STATE, playingState)
+}
+
+// 清空playlist播放列表
+export const deleteSongList = function({commit}) {
+  commit(types.SET_PLAYLIST, [])
+  commit(types.SET_SEQUENCE_LIST, [])
+  commit(types.SET_CURRENT_INDEX, -1)
+  commit(types.SET_PLAYING_STATE, false)
 }
 
 // 将搜索的记录写入vuex变量和写入本地缓存

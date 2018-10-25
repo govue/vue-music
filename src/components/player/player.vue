@@ -124,10 +124,11 @@
   import ProgressBar from 'base/progress-bar/progress-bar' // 引入normal播放器底部进度条
   import ProgressCircle from 'base/progress-circle/progress-circle' // 引入mini播放器右下角有圆形进度条
   import {playMode} from 'common/js/config' // 引入播放模式常量
-  import {shuffle} from 'common/js/util' // 引入数组随机打乱函数
+  // import {shuffle} from 'common/js/util' // 引入数组随机打乱函数
   import Lyric from 'lyric-parser' // 引入歌词处理类
   import Scroll from 'base/scroll/scroll' // 自定义的scroll组件
   import Playlist from 'components/playlist/playlist' // 播放列表
+  import {playerMixin} from 'common/js/mixin'
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -169,18 +170,18 @@
       percent() {
         return this.songPlayingTime / this.songDurationTime
       },
-      // 计算播放模式图标
-      iconMode() {
-        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
-      },
+      // // 计算播放模式图标
+      // iconMode() {
+      //   return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+      // },
       ...mapGetters([// 通过vuex提供的mapGetter将fullScreen、playlist数据扩展到组件的computed属性中
         'fullScreen',
-        'sequenceList', // 播放器播放的原始歌曲列表，列表用来做随机等给playlist用
-        'playlist', // 播放器需要播放的歌曲列表
+        // 'sequenceList', // 播放器播放的原始歌曲列表，列表用来做随机等给playlist用
+        // 'playlist', // 播放器需要播放的歌曲列表
         'currentIndex', // 当前播放歌曲的index
-        'currentSong', // 当前播放的歌曲
-        'playing', // 播放状态
-        'mode' // 播放状态
+        // 'currentSong', // 当前播放的歌曲
+        'playing' // 播放状态
+        // 'mode' // 播放状态
       ])
     },
     watch: {
@@ -211,6 +212,9 @@
         })
       }
     },
+    mixins: [
+      playerMixin
+    ],
     methods: {
       /**
        * 点击左上返回时，设置vuex中的fullScreen为False,将全屏显示播放器缩小
@@ -283,30 +287,30 @@
         }
         this.songCanplay = false // 当播放一首歌开始时同时将songCanplay置为false，等歌曲播放时的canplay事件将songCanplay置为true
       },
-      /**
-       * 切换播放模式
-       */
-      changeMode() {
-        const mode = (this.mode + 1) % 3
-        this.setPlayMode(mode) // 修改vuex里面mode的值
-        let list = null
-        if (mode === playMode.random) {
-          list = shuffle(this.sequenceList) // 根据vuex中顺序的歌曲列表来生成一个随机列表
-          this.resetCurrentIndex(list) // 在打乱后的数组中打开当前播放的歌曲所在的位置
-        } else {
-          list = this.sequenceList
-        }
-        this.setPlaylist(list)
-      },
-      /**
-       * 当随机打乱播放列表后，当前播放的歌曲index对应到随机打乱后的list时就不是当前正在播放的歌曲，这里在打乱后的数组中去找到当前播放歌曲所在的位置
-       */
-      resetCurrentIndex(list) {
-        let index = list.findIndex((item) => {
-          return item.id === this.currentSong.id
-        })
-        this.setCurrentIndex(index) // 将当前播放歌的索引重新设置成打乱后list中对应的索引
-      },
+      // /**
+      //  * 切换播放模式
+      //  */
+      // changeMode() {
+      //   const mode = (this.mode + 1) % 3
+      //   this.setPlayMode(mode) // 修改vuex里面mode的值
+      //   let list = null
+      //   if (mode === playMode.random) {
+      //     list = shuffle(this.sequenceList) // 根据vuex中顺序的歌曲列表来生成一个随机列表
+      //     this.resetCurrentIndex(list) // 在打乱后的数组中打开当前播放的歌曲所在的位置
+      //   } else {
+      //     list = this.sequenceList
+      //   }
+      //   this.setPlaylist(list)
+      // },
+      // /**
+      //  * 当随机打乱播放列表后，当前播放的歌曲index对应到随机打乱后的list时就不是当前正在播放的歌曲，这里在打乱后的数组中去找到当前播放歌曲所在的位置
+      //  */
+      // resetCurrentIndex(list) {
+      //   let index = list.findIndex((item) => {
+      //     return item.id === this.currentSong.id
+      //   })
+      //   this.setCurrentIndex(index) // 将当前播放歌的索引重新设置成打乱后list中对应的索引
+      // },
       /**
        * audio派发过来的canplay事件执行方法，即歌曲资源加载好了，可以进行播放了
        */
@@ -416,11 +420,11 @@
        * mapMutations将需要操作的数据做映射，即将mutations里的操作映射成用户当前组件自定义的方法
        */
       ...mapMutations({
-        setFullScreen: 'SET_FULL_SCREEN',
-        setPlayingState: 'SET_PLAYING_STATE',
-        setCurrentIndex: 'SET_CURRENT_INDEX',
-        setPlayMode: 'SET_PLAY_MODE',
-        setPlaylist: 'SET_PLAYLIST'
+        setFullScreen: 'SET_FULL_SCREEN'
+        // setPlayingState: 'SET_PLAYING_STATE',
+        // setCurrentIndex: 'SET_CURRENT_INDEX',
+        // setPlayMode: 'SET_PLAY_MODE',
+        // setPlaylist: 'SET_PLAYLIST'
       }),
       // ---------动画开始：下面为fullScreen展开时的动画，从miniPlayer左下角的小图片飞出放大到展开的“光盘”处
       enter(el, done) { // done为下一个执行的函数
