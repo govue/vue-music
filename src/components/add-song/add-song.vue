@@ -10,9 +10,15 @@
       <div class="search-box-wrapper">
         <search-box placeholder="搜索歌曲"
                     @query="onQueryChange"
+                    ref="searchBox"
         ></search-box>
       </div>
-      <div class="shortcut" v-show="!query"></div>
+      <div class="shortcut" v-show="!query">
+        <tabs :tabs="tabs"
+              :currentIndex="currentIndex"
+              @switch="switchTab"
+        ></tabs>
+      </div>
       <div class="search-result" v-show="query">
         <suggest :query="query"
                  :showSinger="showSinger"
@@ -27,6 +33,7 @@
 <script type="text/ecmascript-6">
   import SearchBox from 'base/search-box/search-box'
   import Suggest from 'components/suggest/suggest'
+  import Tabs from 'base/tabs/tabs'
   import {searchMixin} from 'common/js/mixin'
 
   export default {
@@ -36,14 +43,20 @@
       return {
         showFlag: false,
         // query: '',
-        showSinger: false
+        showSinger: false,
+        tabs: [
+          {name: '最近播放'},
+          {name: '搜索历史'}
+        ],
+        currentIndex: 0
       }
     },
     computed: {},
     watch: {},
     components: {
       SearchBox,
-      Suggest
+      Suggest,
+      Tabs
     },
     mixins: [
       searchMixin
@@ -67,6 +80,12 @@
        */
       selectSuggest() {
         this.saveSearch()
+      },
+      /**
+       * tab标签切换
+       */
+      switchTab(index) {
+        this.currentIndex = index
       }
     },
     created() {
