@@ -47,6 +47,7 @@
           this.$router.push('/rank')
           return
         }
+        console.log(this.topList)
         getMusicList(this.topList.id).then((res) => {
           if (res.code === ERR_OK) {
             this.songs = this._normalizeSongs(res.songlist)

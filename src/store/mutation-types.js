@@ -16,7 +16,7 @@ export const SET_DISS = 'SET_DISS'
 
 export const SET_TOP_LIST = 'SET_TOP_LIST'
 
-export const SET_SEARCH_HISTORY = 'SET_TOP_LIST'
+export const SET_SEARCH_HISTORY = 'SET_SEARCH_HISTORY'
 
 export const SET_PLAY_HISTORY = 'SET_PLAY_HISTORY' // 在player的canplay时写入
 
