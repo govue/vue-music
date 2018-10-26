@@ -7,6 +7,7 @@ import SingerDetail from '../components/singer-detail/singer-detail' // 歌手�
 import Rank from 'components/rank/rank' // 排行页面
 import TopList from 'components/top-list/top-list' // 排行榜页面（二级）
 import Search from 'components/search/search' // 搜索页面
+import UserCenter from 'components/user-center/user-center' // 用户中心
 
 Vue.use(Router)
 
@@ -54,7 +55,7 @@ export default new Router({
     },
     {
       path: '/search',
-      name: Search,
+      name: 'Search',
       component: Search,
       children: [
         {
@@ -62,6 +63,11 @@ export default new Router({
           component: SingerDetail
         }
       ]
+    },
+    {
+      path: '/user',
+      name: 'UserCenter',
+      component: UserCenter
     }
   ]
 })

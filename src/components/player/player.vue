@@ -81,7 +81,10 @@
               <i class="icon-next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon icon-not-favorite"></i>
+              <i class="icon"
+                 :class="getFavoriteIcon(currentSong)"
+                 @click="toggleFavorite(currentSong)"
+              ></i>
             </div>
           </div>
         </div>
@@ -109,7 +112,7 @@
     <playlist ref="playlist"></playlist>
     <audio :src="currentSong.url"
            ref="audio"
-           @canplay="canplay"
+           @play="canplay"
            @error="error"
            @timeupdate="timeUpdate"
            @ended="ended"
@@ -200,7 +203,8 @@
         if (this.currentLyric) {
           this.currentLyric.stop()
         }
-        setTimeout(() => { // 这里是要等aduio里面有了url值后再播放
+        clearTimeout(this.timer) // 解决快速点击切换歌曲时，歌词不同步的bug
+        this.timer = setTimeout(() => { // 这里是要等aduio里面有了url值后再播放
           this.$refs.audio.play()
           this.getLyric() // 歌词处理
         }, 1000)
@@ -252,6 +256,7 @@
         }
         if (this.playlist.length === 1) { // 如果只有一首歌就单曲循环播放
           this.loop()
+          return // 防止next按钮还可以点击
         } else {
           let index = this.currentIndex + 1
           if (index === this.playlist.length) {
@@ -275,6 +280,7 @@
         }
         if (this.playlist.length === 1) { // 如果只有一首歌就单曲循环播放
           this.loop()
+          return // 防止next按钮还可以点击
         } else {
           let index = this.currentIndex - 1
           if (index === -1) {
@@ -358,6 +364,10 @@
        */
       getLyric() {
         this.currentSong.getLyric().then((lyric) => {
+          // 防止快速点击时歌词多次获取的bug
+          if (this.currentSong.lyric !== lyric) {
+            return
+          }
           this.currentLyric = new Lyric(lyric, this.handleLyric)
           // 如果歌曲是播放状态，则歌词也开始同步播放
           if (this.playing) {

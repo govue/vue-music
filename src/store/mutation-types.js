@@ -19,3 +19,5 @@ export const SET_TOP_LIST = 'SET_TOP_LIST'
 export const SET_SEARCH_HISTORY = 'SET_TOP_LIST'
 
 export const SET_PLAY_HISTORY = 'SET_PLAY_HISTORY' // 在player的canplay时写入
+
+export const SET_FAVORITE_LIST = 'SET_FAVORITE_LIST'

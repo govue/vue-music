@@ -22,7 +22,6 @@
           <scroll class="list-scroll"
                   v-if="currentIndex===0"
                   :data="playHistory"
-                  :refreshDelay="refreshDelay"
                   ref="playHistoryScroll"
           >
             <div class="list-inner">

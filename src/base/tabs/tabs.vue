@@ -1,5 +1,5 @@
 <template>
-  <ul class="tabs">
+  <ul class="tabs" @click.stop>
     <li class="tab-item"
         v-for="(item,index) in tabs"
         :key="index"

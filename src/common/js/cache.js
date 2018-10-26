@@ -14,6 +14,9 @@ const SEARCH_MAX_LENGTH = 15
 const PLAY_KEY = '__PLAY__' // 播放历史
 const PLAY_MAX_LENGTH = 200
 
+const FAVORITE_KEY = '__favorite__' // 喜爱歌曲
+const FAVORITE_MAX_LENGTH = 200
+
 /**
  * 保存搜索历史记录(一条)，在vuex中的actions.js文件引用
  * @param query
@@ -104,4 +107,29 @@ export function savePlay(song) {
 // 获取播放历史
 export function loadPlay() {
   return storage.get(PLAY_KEY, [])
+}
+
+// 保存喜爱歌曲
+export function saveFavorite(song) {
+  let songs = storage.get(FAVORITE_KEY, [])
+  insertArray(songs, song, (item) => {
+    return song.id === item.id
+  }, FAVORITE_MAX_LENGTH)
+  storage.set(FAVORITE_KEY, songs)
+  return songs
+}
+
+// 删除喜爱歌曲
+export function deleteFavorite(song) {
+  let songs = storage.get(FAVORITE_KEY, [])
+  deleteFromArray(songs, (item) => {
+    return song.id === item.id
+  })
+  storage.set(FAVORITE_KEY, songs)
+  return songs
+}
+
+// 获取喜爱歌曲
+export function loadFavorite() {
+  return storage.get(FAVORITE_KEY, [])
 }
