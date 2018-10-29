@@ -13,7 +13,8 @@
           <div class="slider-wrapper" v-if="sliders.length">
             <slider>
               <div v-for="(slider,index) in sliders" :key="index">
-                <a :href="slider.linkUrl">
+                <!--<a :href="slider.linkUrl">-->
+                <a @click="linkAlert">
                   <img class="needsclick" :src="slider.picUrl" @load="loadImage" alt="">
                 </a>
               </div>
@@ -70,6 +71,9 @@
         this._getDissList()
       },
       methods: {
+        linkAlert() {
+          alert('这个功能还没开发哦，请听下其它歌先，~V~')
+        },
         // 获取轮播图数据
         _getSliders() {
           getSliders().then((res) => {
@@ -81,6 +85,7 @@
         // 获取歌单数据
         _getDissList() {
           getDissList().then((res) => {
+            // console.log(res)
             if (res.code === ERR_OK) {
               this.dissList = res.data.list
             }

@@ -8,7 +8,7 @@
 
 import jsonp from 'common/js/jsonp'
 import {commonParams, options} from './config'
-import axios from 'axios'
+// import axios from 'axios'
 
 /**
  * @method getHotKey
@@ -36,7 +36,8 @@ export function getHotKey() {
  * @desc 获取排热点搜索关键词数据
  */
 export function search(query, page, zhida, perpage) {
-  const url = '/search'
+  // const url = '/search'
+  const url = 'http://musicsearchapi.freetable.cn'
   const data = Object.assign({}, commonParams, {
     uin: 0,
     platform: 'h5',
@@ -44,7 +45,7 @@ export function search(query, page, zhida, perpage) {
     w: query,
     zhidaqu: 1,
     catZhida: zhida ? 1 : 0,
-    format: 'json',
+    format: 'jsonp',
     t: 0,
     flag: 1,
     ie: 'utf-8',
@@ -60,9 +61,11 @@ export function search(query, page, zhida, perpage) {
   //   prefix: '',
   //   name: 'getUCGI7515964745815737'
   // }
-  return axios.get(url, {
-    params: data
-  }).then((res) => {
-    return Promise.resolve(res.data)
-  })
+
+  // return axios.get(url, {
+  //   params: data
+  // }).then((res) => {
+  //   return Promise.resolve(res.data)
+  // })
+  return jsonp(url, data, options)
 }

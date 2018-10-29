@@ -1,6 +1,6 @@
-// import jsonp from 'common/js/jsonp'
-import axios from 'axios'
-import {commonParams} from './config'
+import jsonp from 'common/js/jsonp'
+// import axios from 'axios'
+import {commonParams, options} from './config'
 
 /**
  * @method getDiscList
@@ -8,7 +8,8 @@ import {commonParams} from './config'
  * @desc 获取歌词数据，通过webpack.conf.js中的devServer里面before(app) {...}来代理后端数据,
  */
 export function getLyric(mid) {
-  const url = '/lyric'
+  // const url = '/lyric'
+  const url = 'http://musiclyricapi.freetable.cn'
   const data = Object.assign({}, commonParams, {
     // platform: 'yqq',
     // hostUin: 0,
@@ -32,9 +33,10 @@ export function getLyric(mid) {
     needNewCode: 0
   })
 
-  return axios.get(url, {
-    params: data
-  }).then((res) => {
-    return Promise.resolve(res.data)
-  })
+  // return axios.get(url, {
+  //   params: data
+  // }).then((res) => {
+  //   return Promise.resolve(res.data)
+  // })
+  return jsonp(url, data, options)
 }

@@ -1,3 +1,10 @@
+<!--
+* @file top-list.vue
+* @author qubo
+* @copyright govue.cn
+* @createDate 2018-10-29 10:41:00
+* @desc 歌曲排行页组件（排行下面二级页面）
+-->
 <template>
   <transition name="slide">
     <music-list :title="title"
@@ -47,7 +54,7 @@
           this.$router.push('/rank')
           return
         }
-        console.log(this.topList)
+        // console.log(this.topList)
         getMusicList(this.topList.id).then((res) => {
           if (res.code === ERR_OK) {
             this.songs = this._normalizeSongs(res.songlist)
