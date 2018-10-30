@@ -181,7 +181,7 @@
           // 如果这里不延时执行，就会报refresh方法找不到
           setTimeout(() => {
             this.$refs.listview.refresh()
-          }, 100)
+          }, 1000)
         }
       },
       watch: {

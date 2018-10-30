@@ -10,6 +10,13 @@ import VueLazyLoad from 'vue-lazyload' // 图片懒加载
 
 import 'common/stylus/index.styl'
 
+/* eslint-disable no-unused-vars */
+import VConsole from 'vconsole'
+/* eslint-disable no-new */
+new VConsole()
+
+console.log('test')
+
 fastclick.attach(document.body)
 Vue.use(VueLazyLoad, {
   loading: require('common/image/default.png')
