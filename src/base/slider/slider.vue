@@ -43,7 +43,7 @@
         // 播放时间间隔
         interval: {
           type: Number,
-          default: 2000
+          default: 3000
         }
       },
       methods: {
